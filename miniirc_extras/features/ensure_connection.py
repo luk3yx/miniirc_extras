@@ -58,7 +58,7 @@ class ConnectionEnsurer:
             self._irc.sock.settimeout(self._old_interval)
 
     # Set the new interval
-    def __call__(self, interval: int = 2) -> ConnectionEnsurer:
+    def __call__(self, interval: int = 2):
         if not isinstance(interval, (int, float)) or interval < 1:
             raise ValueError(
                 'irc.ensure_connection() interval must be at least 1.'
