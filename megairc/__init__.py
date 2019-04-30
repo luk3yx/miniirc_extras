@@ -44,7 +44,7 @@ __all__ = ['CmdHandler', 'Feature', 'Handler', 'IRC', 'error'] # type: List[str]
 
 # Add core features
 for f in os.listdir(os.path.dirname(__file__) + os.sep + 'features'):
-    if f.endswith('.py'):
+    if not f.startswith('__') and f.endswith('.py'):
         _core_feature(f[:-3])
 
 del f
