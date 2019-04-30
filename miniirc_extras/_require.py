@@ -37,4 +37,4 @@ def _require(self, feature: str) -> Optional[_c]:
     return res
 
 # Add require() to all IRC objects
-miniirc.IRC.require = _require # type: Callable[[miniirc.IRC, str],Optional[_c]]
+miniirc.IRC.require = _require

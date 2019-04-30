@@ -7,10 +7,10 @@ with open('README.md', 'r') as f:
 
 setup(
     name        = 'miniirc_extras',
-    version     = '0.0.0',
+    version     = '0.0.1',
     packages    = ['miniirc_extras'],
     author      = 'luk3yx',
-    description = 'WIP',
+    description = 'WIP extensions for miniirc.',
     url         = 'https://github.com/luk3yx/miniirc_extras',
     license     = 'MIT',
 
@@ -21,11 +21,12 @@ setup(
 
     classifiers = [
         'Development Status :: 2 - Pre-Alpha',
-        'License :: OSI Approved :: MIT',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Topic :: Software Development :: Libraries',
     ]
 )

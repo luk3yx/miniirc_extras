@@ -22,9 +22,9 @@ class error(Exception):
     pass
 
 # The require() code may eventually move into miniirc.
-try:
-    from miniirc import Feature
-except ImportError:
+if hasattr(miniirc, 'Feature'):
+    from miniirc import Feature # type: ignore
+else:
     from ._require import Feature
 
 # Load features on-the-fly when required
