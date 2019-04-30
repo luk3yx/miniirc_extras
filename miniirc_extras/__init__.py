@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 #
-# megairc: Adds extendability to miniirc.
+# miniirc_extras: Adds extendability to miniirc.
 #
 # © 2019 by luk3yx.
 #
 
 import miniirc, os, sys
 assert hasattr(miniirc, 'ver') and miniirc.ver >= (1,3,2), \
-    'megairc requires miniirc >= 1.3.2.'
+    'miniirc_extras requires miniirc >= 1.3.2.'
 
 from miniirc import CmdHandler, Handler, IRC
 from typing import Any, List
 
 # Version info
 ver = (0,0,1)
-version = 'megairc v0.0.1 (running on miniirc v{})'
+version = 'miniirc v{} / miniirc_extras v0.0.1'
 version = version.format('.'.join(map(str, miniirc.ver)))
 
 # The base exception class

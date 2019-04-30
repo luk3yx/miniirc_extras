@@ -1,15 +1,16 @@
-# megairc
+# miniirc_extras
 
 An extension of miniirc ([GitHub](https://github.com/luk3yx/miniirc),
 [GitLab](https://gitlab.com/luk3yx/miniirc)) that adds more features.
 
-Note that megairc is pre-alpha software and should not be used in production.
+Note that miniirc_extras is pre-alpha software and should not be used in
+production.
 
 Some features here may be merged into miniirc eventually.
 
 ## Loading features
 
-After importing megairc, features can be loaded with
+After importing miniirc_extras, features can be loaded with
 `irc.require('feature_name')`, and once loaded can be accessed with
 `irc.feature_name`.
 
@@ -23,10 +24,10 @@ After importing megairc, features can be loaded with
 
 *This API will probably change in the future.*
 
-You can create your own features with `megairc.Feature`:
+You can create your own features with `miniirc_extras.Feature`:
 
 ```py
-@megairc.Feature('feature_name')
+@miniirc_extras.Feature('feature_name')
 class MyFeature:
     def test_func(self, irc):
         print('test_func called with', irc)

@@ -6,12 +6,12 @@ with open('README.md', 'r') as f:
     desc = f.read()
 
 setup(
-    name        = 'megairc',
-    version     = '0.0.1',
-    packages    = ['megairc'],
+    name        = 'miniirc_extras',
+    version     = '0.0.0',
+    packages    = ['miniirc_extras'],
     author      = 'luk3yx',
     description = 'WIP',
-    url         = 'https://github.com/luk3yx/megairc',
+    url         = 'https://github.com/luk3yx/miniirc_extras',
     license     = 'MIT',
 
     long_description              = desc,

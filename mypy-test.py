@@ -3,7 +3,7 @@
 # Mypy wrapper script
 #
 
-import megairc
-import megairc.features._json
-import megairc.features.ensure_connection
-import megairc.features.testfeature
+import miniirc_extras
+import miniirc_extras.features._json
+import miniirc_extras.features.ensure_connection
+import miniirc_extras.features.testfeature

@@ -10,6 +10,8 @@ from typing import List, Optional, Tuple
 class NotConnectedError(error):
     pass
 
+_ping_arg = ':miniirc_extras-connection_ensurer' # type: str
+
 # The ensure_connection feature
 @Feature('ensure_connection')
 class ConnectionEnsurer:
@@ -36,7 +38,7 @@ class ConnectionEnsurer:
         self._managers += 1
         try:
             self._event.clear()
-            irc.quote('PING', ':megairc-connection-ensurer')
+            irc.quote('PING', _ping_arg)
 
             # Raise an error
             if not self._event.wait(interval):
@@ -68,7 +70,7 @@ class ConnectionEnsurer:
     # Handle PONGs
     def _handle_pong(self, irc: IRC, hostmask: Tuple[str, str, str],
             args: List[str]) -> None:
-        if len(args) < 1 or args[-1] != ':megairc-connection-ensurer':
+        if len(args) < 1 or args[-1] != _ping_arg:
             return
 
         if self._managers:
