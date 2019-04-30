@@ -1,7 +1,7 @@
 # megairc
 
 An extension of miniirc ([GitHub](https://github.com/luk3yx/miniirc),
-[GitLab](httos://gitlab.com/luk3yx/miniirc)) that adds more features.
+[GitLab](https://gitlab.com/luk3yx/miniirc)) that adds more features.
 
 Note that megairc is pre-alpha software and should not be used in production.
 
