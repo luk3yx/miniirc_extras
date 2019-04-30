@@ -10,7 +10,7 @@ setup(
     version     = '0.0.1',
     packages    = ['megairc'],
     author      = 'luk3yx',
-    description = 'A miniirc-based IRC bot.',
+    description = 'WIP',
     url         = 'https://github.com/luk3yx/megairc',
     license     = 'MIT',
 

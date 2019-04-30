@@ -3,8 +3,9 @@
 # irc.ensure_connection: Decreases the ping interval temporarily
 #
 
-from .. import error, Feature
+from .. import error, Feature, IRC
 import threading
+from typing import List, Optional, Tuple
 
 class NotConnectedError(error):
     pass
@@ -12,12 +13,12 @@ class NotConnectedError(error):
 # The ensure_connection feature
 @Feature('ensure_connection')
 class ConnectionEnsurer:
-    _new_interval = 2
-    _old_interval = None
-    _managers     = 0
+    _new_interval = 2     # type: int
+    _old_interval = None  # type: Optional[int]
+    _managers     = 0     # type: int
 
     # Handle new contexts
-    def __enter__(self):
+    def __enter__(self) -> None:
         irc, interval = self._irc, self._new_interval
 
         # Make sure irc.connected is True.
@@ -47,7 +48,7 @@ class ConnectionEnsurer:
             raise
 
     # Handle leaving a context
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         if self._managers > 0:
             self._managers -= 1
 
@@ -55,7 +56,7 @@ class ConnectionEnsurer:
             self._irc.sock.settimeout(self._old_interval)
 
     # Set the new interval
-    def __call__(self, interval = 2):
+    def __call__(self, interval: int = 2) -> ConnectionEnsurer:
         if not isinstance(interval, (int, float)) or interval < 1:
             raise ValueError(
                 'irc.ensure_connection() interval must be at least 1.'
@@ -65,7 +66,8 @@ class ConnectionEnsurer:
         return self
 
     # Handle PONGs
-    def _handle_pong(self, irc, hostmask, args):
+    def _handle_pong(self, irc: IRC, hostmask: Tuple[str, str, str],
+            args: List[str]) -> None:
         if len(args) < 1 or args[-1] != ':megairc-connection-ensurer':
             return
 
@@ -73,7 +75,7 @@ class ConnectionEnsurer:
             self._event.set()
 
     # Create new irc.ensure_connection() instances for IRC objects.
-    def __init__(self, irc):
+    def __init__(self, irc: IRC) -> None:
         self._event = threading.Event()
         self._irc   = irc
         irc.Handler('PONG')(self._handle_pong)

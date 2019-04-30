@@ -6,10 +6,11 @@
 #
 
 import miniirc, os, sys
-from miniirc import *
-
 assert hasattr(miniirc, 'ver') and miniirc.ver >= (1,3,2), \
     'megairc requires miniirc >= 1.3.2.'
+
+from miniirc import CmdHandler, Handler, IRC
+from typing import Any, List
 
 # Version info
 ver = (0,0,1)
@@ -21,15 +22,17 @@ class error(Exception):
     pass
 
 # The require() code may eventually move into miniirc.
-if not hasattr(miniirc, 'Feature') or not hasattr(IRC, 'require'):
+try:
+    from miniirc import Feature
+except ImportError:
     from ._require import Feature
 
 # Load features on-the-fly when required
-def _core_feature(name):
-    module = __name__ + '.features.' + name
+def _core_feature(name: str) -> None:
+    module = __name__ + '.features.' + name # type: str
 
     @Feature(name)
-    def _feature(irc):
+    def _feature(irc: miniirc.IRC) -> Any:
         if name.startswith('_'):
             print('WARNING: WIP feature loaded!', file = sys.stderr)
 
@@ -37,10 +40,7 @@ def _core_feature(name):
         return irc.require(name)
 
 # Create __all__
-__all__ = ['error']
-__all__.extend(miniirc.__all__)
-if 'Feature' not in __all__:
-    __all__.append('Feature')
+__all__ = ['CmdHandler', 'Feature', 'Handler', 'IRC', 'error'] # type: List[str]
 
 # Add core features
 for f in os.listdir(os.path.dirname(__file__) + os.sep + 'features'):
