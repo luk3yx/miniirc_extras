@@ -7,7 +7,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name        = 'miniirc_extras',
-    version     = '0.1.0',
+    version     = '0.1.1',
     packages    = ['miniirc_extras'],
     author      = 'luk3yx',
     description = 'WIP extensions for miniirc.',

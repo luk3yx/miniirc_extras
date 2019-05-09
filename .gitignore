@@ -59,3 +59,6 @@ target/
 
 # Mypy
 .mypy_cache/
+
+# A local test script
+local_test.py

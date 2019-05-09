@@ -16,9 +16,10 @@ After importing miniirc_extras, features can be loaded with
 
 ## Features
 
+ - `chans`: Channel mode tracking, must be loaded while miniirc is disconnected.
  - `ensure_connection`: https://github.com/luk3yx/miniirc/issues/15
  - `testfeature`: Debugging
- - `users`: User tracking.
+ - `users`: User tracking, must be loaded while miniirc is disconnected.
  - `_json` *(WIP)*: Parse JSON messages.
 
 ### `irc.users`
@@ -46,9 +47,6 @@ The following items are available in `User` objects:
 You can also set and get items with strings as keys and JSON-compatible objects
 as values.
 
-*Note that `Channel` objects are currently a WIP and will be documented soon,
-and `channel.name` is the name of the channel.*
-
 `User` objects have the following helper functions:
 
 | Function          | Description                                             |
@@ -57,6 +55,37 @@ and `channel.name` is the name of the channel.*
 | `me(*text)`       | Send a `CTCP ACTION` (`/me`) to the user.               |
 | `notice(*text)`   | Send a `NOTICE` to the user.                            |
 | `kick(channel, reason = '')` | Kicks the user from `channel` (a string or `Channel` object). |
+
+### `irc.chans`
+
+`irc.chans` adds channel mode tracking on top of `irc.users`. You can get
+channels with `irc.chans['#channel-name']`
+
+#### `Channel` objects
+
+`Channel` objects have the following attributes:
+
+| Variable      | Description                                               |
+| ------------- | --------------------------------------------------------  |
+| `name`        | The name of the channel.                                  |
+| `modes`       | A `ModeList` object containing a list of modes.           |
+| `topic`       | The channel topic.                                        |
+| `users`       | A `set` containing `User` objects for members of this channel. |
+
+#### `ModeList` objects
+
+ModeList objects store a list of modes, and have the following functions:
+
+| Function          | Description                                             |
+| ----------------- | ------------------------------------------------------- |
+| `getbool(mode)`   | Returns `True` if `mode` (a single-character string) is set on the corresponding channel. *Use this for `+i`, `+t`, etc* |
+| `getstr(mode, default = None)` | Return the parameter `mode` was set with, otherwise `default`. *Use this for `+k`, `+l`, etc* |
+| `getset(mode)` | Return a `frozenset` containing all the entries stored in `mode`. If you plan to use this for modes such as `+b`, you may want to run `MODE #channel +b` when the bot/client joins the channel to populate the list. *Use this for `+b`, `+e`, `+o`, `+v`, etc* |
+| `hasstr(mode)` | Returns `True` if `mode` is set with a single parameter, otherwise `False`. |
+| `hasset(mode)` | Equivalent to `len(getset(mode)) == 0`. |
+
+*You can access `ModeList` objects like `dict`s, however this will require
+extra type checking code if you plan to use mypy or another type checker.*
 
 ## Hostmask objects
 
