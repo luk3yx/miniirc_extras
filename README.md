@@ -82,7 +82,7 @@ ModeList objects store a list of modes, and have the following functions:
 | `getstr(mode, default = None)` | Return the parameter `mode` was set with, otherwise `default`. *Use this for `+k`, `+l`, etc* |
 | `getset(mode)` | Return a `frozenset` containing all the entries stored in `mode`. If you plan to use this for modes such as `+b`, you may want to run `MODE #channel +b` when the bot/client joins the channel to populate the list. *Use this for `+b`, `+e`, `+o`, `+v`, etc* |
 | `hasstr(mode)` | Returns `True` if `mode` is set with a single parameter, otherwise `False`. |
-| `hasset(mode)` | Equivalent to `len(getset(mode)) == 0`. |
+| `hasset(mode)` | Equivalent to `len(getset(mode)) > 0`. |
 
 *You can access `ModeList` objects like `dict`s, however this will require
 extra type checking code if you plan to use mypy or another type checker.*
@@ -111,11 +111,11 @@ You can create your own features with `miniirc_extras.Feature`:
 ```py
 @miniirc_extras.Feature('feature_name')
 class MyFeature:
-    def test_func(self, irc):
-        print('test_func called with', irc)
+    def test_func(self):
+        print('test_func called with', self._irc)
 
-    def __call__(self, irc):
-        print('MyFeature called with', irc)
+    def __call__(self):
+        print('MyFeature called with', self._irc)
 
     def __init__(self, irc):
         self._irc = irc
