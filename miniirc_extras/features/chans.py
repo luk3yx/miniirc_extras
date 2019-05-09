@@ -214,20 +214,25 @@ class ChannelTracker:
     #   nickname.
     def _handle_nick_(self, irc: IRC, hostmask: Hostmask,
             args: List[str]) -> None:
-        user = self._users[hostmask] # type: User
+        oldnick = hostmask[0].lower() # type: str
+        user = self._users[args[0]] # type: User
+        prefixes = str(irc.isupport.get('PREFIX', 'Yqaohv')) # type: str
         for chan in user.channels:
             if not isinstance(chan, Channel):
                 continue
             for mode in chan.modes:
-                if mode not in str(irc.isupport.get('PREFIX', 'Yqaohv')) or \
-                        not chan.modes.hasset(mode):
+                if mode not in prefixes or not chan.modes.hasset(mode):
                     continue
 
-                data = chan.modes[mode]
-                for i in tuple(data):
-                    if i.lower() != user.nick:
-                        continue
-                    data.remove(i)
+                data = chan.modes[mode] # type: Set[str]
+                target = None # type: Optional[str]
+                for i in data:
+                    if i.lower() == oldnick:
+                        target = oldnick
+                        break
+
+                if target is not None:
+                    data.remove(target)
                     data.add(user.nick)
 
     # Handle WHO replies
@@ -241,6 +246,7 @@ class ChannelTracker:
             args: List[str]) -> None:
         prefixes = self._353_prefixes
 
+        chan = self._users.Channel(args[-2]) # type: Channel
         for nick in args[-1][1:].split(' '):
             # Get the modes
             modes = set()
@@ -252,7 +258,6 @@ class ChannelTracker:
                 continue
 
             user = self._users[Hostmask(nick, '???', '???')] # type: User
-            chan = self._users.Channel(args[-2])
             user.add_to_channel(chan)
 
             for mode in modes:

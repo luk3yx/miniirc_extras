@@ -7,7 +7,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name        = 'miniirc_extras',
-    version     = '0.1.1',
+    version     = '0.1.2',
     packages    = ['miniirc_extras'],
     author      = 'luk3yx',
     description = 'WIP extensions for miniirc.',
@@ -20,7 +20,7 @@ setup(
     python_requires               = '>=3.5',
 
     classifiers = [
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
