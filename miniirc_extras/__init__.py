@@ -11,11 +11,11 @@ assert hasattr(miniirc, 'ver') and miniirc.ver >= (1,3,2), \
 
 from miniirc import CmdHandler, Handler, IRC
 from typing import Any, List
+from ._classes import *
 
 # Version info
-ver = (0,0,1)
-version = 'miniirc v{} / miniirc_extras v0.0.1'
-version = version.format('.'.join(map(str, miniirc.ver)))
+ver     = VersionInfo(0,1,0, 'alpha')
+version = 'miniirc v{} / miniirc_extras v{}'.format(miniirc.ver, ver)
 
 # The base exception class
 class error(Exception):
@@ -41,6 +41,11 @@ def _core_feature(name: str) -> None:
 
 # Create __all__
 __all__ = ['CmdHandler', 'Feature', 'Handler', 'IRC', 'error'] # type: List[str]
+
+# Load the base classes
+from . import _classes
+__all__.extend(_classes.__all__)
+del _classes
 
 # Add core features
 for f in os.listdir(os.path.dirname(__file__) + os.sep + 'features'):

@@ -21,7 +21,7 @@ def Feature(name: str) -> Callable[[_c], _c]:
     return res
 
 # Require features
-def _require(self, feature: str) -> Optional[_c]:
+def require(self, feature: str) -> Optional[_c]:
     if hasattr(self, feature):
         return None
     elif feature not in _features:
@@ -37,4 +37,4 @@ def _require(self, feature: str) -> Optional[_c]:
     return res
 
 # Add require() to all IRC objects
-miniirc.IRC.require = _require
+miniirc.IRC.require = require
