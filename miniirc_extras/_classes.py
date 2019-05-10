@@ -91,6 +91,10 @@ miniirc.ver = VersionInfo(miniirc.ver) # type: ignore
 class DummyIRC(miniirc.IRC):
     def connect(self) -> NoReturn: raise NotImplementedError
 
+    def quote(self, *msg: str, force: Optional[bool] = None,
+            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
+        pass
+
     def __init__(self, ip: str = '', port: int = 0, nick: str = '',
             channels = (), **kwargs) -> None:
         kwargs['auto_connect'] = False

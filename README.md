@@ -1,5 +1,11 @@
 # miniirc_extras
 
+![Python 3.5+] [![Available on PyPI.]](https://pypi.org/project/miniirc_extras/) [![License: MIT]](https://github.com/luk3yx/miniirc_extras/blob/master/LICENSE.md)
+
+[Python 3.5+]: https://img.shields.io/badge/python-3.5+-blue.svg
+[Available on PyPI.]: https://img.shields.io/pypi/v/miniirc_extras.svg
+[License: MIT]: https://img.shields.io/pypi/l/miniirc.svg
+
 An extension of miniirc ([GitHub](https://github.com/luk3yx/miniirc),
 [GitLab](https://gitlab.com/luk3yx/miniirc)) that adds more features.
 
