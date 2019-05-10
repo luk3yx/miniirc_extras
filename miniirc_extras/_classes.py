@@ -3,10 +3,11 @@
 # Base miniirc_extras classes
 #
 
-import collections, miniirc
-from typing import Any, NewType, Optional, Tuple, Union
+import abc, collections, io, miniirc, socket, threading
+from typing import Any, Callable, Dict, List, NoReturn, Optional, Set, Tuple, \
+    Union
 
-__all__ = ['Hostmask', 'VersionInfo']
+__all__ = ['AbstractIRC', 'DummyIRC', 'Hostmask', 'VersionInfo']
 
 # A metaclass for instance checking
 class _HostmaskMetaclass(type):
@@ -52,7 +53,7 @@ class VersionInfo(tuple):
     def serial(self) -> int:
         return self[4]
 
-    # Get the VersinoInfo representation
+    # Get the VersionInfo representation
     def __repr__(self) -> str:
         return '{}{}'.format(type(self).__name__,
             tuple(self) if self.serial else self[:-1])
@@ -85,3 +86,114 @@ class VersionInfo(tuple):
 
 # Make miniirc.ver a VersionInfo.
 miniirc.ver = VersionInfo(miniirc.ver) # type: ignore
+
+# A dummy IRC class
+class DummyIRC(miniirc.IRC):
+    def connect(self) -> NoReturn: raise NotImplementedError
+
+    def __init__(self, ip: str = '', port: int = 0, nick: str = '',
+            channels = (), **kwargs) -> None:
+        kwargs['auto_connect'] = False
+        super().__init__(ip, port, nick, channels, **kwargs)
+
+# An abstract IRC class
+_hostmask = Union[Hostmask, Tuple[str, str, str]]
+class AbstractIRC(abc.ABC):
+    connected = None # type: Optional[bool]
+    debug_file = None # type: Optional[Union[io.TextIOWrapper, miniirc._Logfile]]
+    sendq = None # type: Optional[List[tuple]]
+    msglen = 512 # type: int
+    _sasl = False # type: bool
+    _unhandled_caps = None # type: Optional[set]
+
+    sock = None # type: socket.socket
+    ip = None # type: str
+    port = None # type: str
+    nick = None # type: str
+    channels = None # type: Set[str]
+    ident = None # type: str
+    realname = None # type: str
+    ssl = None # type: Optional[bool]
+    persist = True # type: bool
+    ircv3_caps = None # type: Set[str]
+    active_caps = None # type: Set[str]
+    isupport = None # type: Dict[str, Union[str, int]]
+    connect_modes = None # type: Optional[str]
+    quit_message = 'I grew sick and died.' # type: str
+    ping_interval = 60 # type: int
+    verify_ssl = True # type: bool
+
+    ns_identity = None # type: Optional[Union[Tuple[str, str], str]]
+
+    @abc.abstractmethod
+    def require(self, feature: str) -> Optional[Callable[[miniirc.IRC], Any]]:
+        ...
+
+    @abc.abstractmethod
+    def debug(self, *args: Any, **kwargs) -> None: ...
+
+    @abc.abstractmethod
+    def quote(self, *msg: str, force: Optional[bool] = None,
+        tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
+
+    @abc.abstractmethod
+    def msg(self, target: str, *msg: str,
+        tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
+    @abc.abstractmethod
+    def notice(self, target: str, *msg: str,
+        tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
+    @abc.abstractmethod
+    def ctcp(self, target: str, *msg: str, reply: bool = False,
+        tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
+    @abc.abstractmethod
+    def me(self, target: str, *msg: str,
+        tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
+
+    @abc.abstractmethod
+    def Handler(self, *events: str, ircv3: bool = False) \
+        -> Callable: ...
+    @abc.abstractmethod
+    def CmdHandler(self, *events: str, ircv3: bool = False) \
+        -> Callable: ...
+
+    @abc.abstractmethod
+    def connect(self) -> None: ...
+
+    @abc.abstractmethod
+    def disconnect(self, msg: Optional[str] = None, *,
+        auto_reconnect: bool = False) -> None: ...
+
+    @abc.abstractmethod
+    def finish_negotiation(self, cap: str) -> None: ...
+
+    @abc.abstractmethod
+    def change_parser(self, parser: Callable[[str],
+        Tuple[str, _hostmask, Dict[str, Union[str, bool]],
+        List[str]]] = miniirc.ircv3_message_parser) -> None: ...
+
+    @abc.abstractmethod
+    def _handle(self, cmd: str, hostmask: _hostmask,
+        tags: Dict[str, Union[str, bool]], args: List[str]) -> bool: ...
+
+    @abc.abstractmethod
+    def _handle_cap(self, cap: str) -> None: ...
+
+    @abc.abstractmethod
+    def _main(self) -> None: ...
+
+    @abc.abstractmethod
+    def main(self) -> threading.Thread: ...
+
+    @abc.abstractmethod
+    def __init__(self, ip: str, port: int, nick: str,
+        channels: Union[List[str], Set[str]] = None, *,
+        ssl: Optional[bool] = None, ident: Optional[str] = None,
+        realname: Optional[str] = None, persist: bool = True,
+        debug: Union[bool, io.TextIOWrapper, str] = False,
+        ns_identity: Optional[Union[Tuple[str, str], str]] = None,
+        auto_connect: bool = True, ircv3_caps: Union[Set[str], List[str],
+        Tuple[str, ...]] = [], connect_modes: Optional[str] = None,
+        quit_message: str = 'I grew sick and died.', ping_interval: int = 60,
+        verify_ssl: bool = True) -> None: ...
+
+AbstractIRC.register(miniirc.IRC)

@@ -3,7 +3,7 @@
 # irc.tracking: User and channel mode tracking
 #
 
-from .. import error, Feature, Hostmask, IRC
+from .. import AbstractIRC, error, Feature, Hostmask
 from . import users
 from .users import AbstractChannel, User
 from typing import Any, Callable, Dict, FrozenSet, List, Optional, Set, Tuple, \
@@ -114,13 +114,14 @@ class ModeList(dict):
     def __repr__(self) -> str:
         return '<ModeList {}>'.format(repr(str(self)))
 
-    def __init__(self, irc: IRC, initial_modes: Optional[dict] = None) -> None:
+    def __init__(self, irc: AbstractIRC,
+            initial_modes: Optional[dict] = None) -> None:
         if initial_modes:
             super().__init__(initial_modes)
         else:
             super().__init__()
 
-        self._irc = irc # type: IRC
+        self._irc = irc # type: AbstractIRC
         self.chanmodes = irc.chans.chanmodes # type: ignore
 
 # Channels
@@ -130,14 +131,14 @@ class Channel(AbstractChannel):
     def add_modes(self) -> Callable[[str, Union[List[str], Tuple[str]]], None]:
         return self.modes.add_modes
 
-    def __init__(self, name: str, topic: str = '', irc: Optional[IRC] = None) \
-            -> None:
-        if not isinstance(irc, IRC):
+    def __init__(self, name: str, topic: str = '',
+            irc: Optional[AbstractIRC] = None) -> None:
+        if not isinstance(irc, AbstractIRC):
             raise TypeError('Channel.__init__() missing 1 required'
                 " keyword-only argument: 'irc'")
 
         super().__init__(name, topic, irc)
-        self._irc = irc # type: IRC
+        self._irc = irc # type: AbstractIRC
         self.modes = ModeList(irc) # type: ModeList
 
 users.Channel = Channel
@@ -169,7 +170,7 @@ class ChannelTracker:
         return self.is_channel(item) and item.lower() in self._chans
 
     # Handle initial channel modes
-    def _handle_324(self, irc: IRC, hostmask: Hostmask,
+    def _handle_324(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         if len(args) < 3 or args[1] not in self:
             return
@@ -179,13 +180,13 @@ class ChannelTracker:
         self[args.pop(0)].add_modes(args.pop(0), args)
 
     # Handle JOINs
-    def _handle_join(self, irc: IRC, hostmask: Hostmask,
+    def _handle_join(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         if self._users[hostmask].current_user:
             irc.quote('MODE', args[0])
 
     # Handle MODEs
-    def _handle_mode(self, irc: IRC, hostmask: Hostmask,
+    def _handle_mode(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         if len(args) < 2 or args[0] not in self:
             return
@@ -195,24 +196,24 @@ class ChannelTracker:
 
     # Parse mode lists
     _mode_lists = {'367': 'b', '348': 'e', '346': 'I'} # type: Dict[str, str]
-    def _parse_mode_lists(self, irc: IRC, cmd: str, hostmask: Hostmask,
+    def _parse_mode_lists(self, irc: AbstractIRC, cmd: str, hostmask: Hostmask,
             args: List[str]) -> None:
         args.pop(0)
         self[args.pop(0)].add_modes('+' + self._mode_lists[cmd], args)
 
     # Handle TOPICs
-    def _handle_topic(self, irc: IRC, hostmask: Hostmask,
+    def _handle_topic(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         if args[0] in self:
             self[args[0]].topic = args[-1][1:]
 
-    def _handle_332(self, irc: IRC, hostmask: Hostmask,
+    def _handle_332(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         self._handle_topic(irc, hostmask, args[1:])
 
     # Spaghetti code to automatically change any status modes to the new
     #   nickname.
-    def _handle_nick_(self, irc: IRC, hostmask: Hostmask,
+    def _handle_nick_(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         oldnick = hostmask[0].lower() # type: str
         user = self._users[args[0]] # type: User
@@ -236,13 +237,13 @@ class ChannelTracker:
                     data.add(user.nick)
 
     # Handle WHO replies
-    def _handle_352_(self, irc: IRC, hostmask: Hostmask,
+    def _handle_352_(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         self._handle_353_(irc, hostmask, [args[1], args[6]])
 
     # Handle NAMES
     _353_prefixes = {} # type: Dict[str, str]
-    def _handle_353_(self, irc: IRC, hostmask: Hostmask,
+    def _handle_353_(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         prefixes = self._353_prefixes
 
@@ -264,7 +265,7 @@ class ChannelTracker:
                 chan.modes.add_modes('+' + mode, [nick])
 
     # Get the channel modes from the ISUPPORT
-    def _handle_005(self, irc: IRC, hostmask: Hostmask,
+    def _handle_005(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         # Get the CHANMODES isupport
         if 'CHANMODES' not in irc.isupport:
@@ -294,8 +295,8 @@ class ChannelTracker:
         # Update self.chanmodes
         self.chanmodes = tuple(map(frozenset, chanmodes))
 
-    def __init__(self, irc: IRC) -> None:
-        self._irc = irc  # type: IRC
+    def __init__(self, irc: AbstractIRC) -> None:
+        self._irc = irc  # type: AbstractIRC
         assert not irc.connected, 'The "channels" feature must be enabled' \
             ' before connecting to IRC!'
 

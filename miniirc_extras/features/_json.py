@@ -78,7 +78,7 @@ def _switch_to_json(irc, hostmask, args):
     irc.finish_negotiation(args[0])
 
 # Add the feature
-@Feature('json_protocol')
+@Feature('_json')
 def json_feature(irc):
     irc.ircv3_caps.add(cap_name)
     irc.Handler('IRCv3 ' + cap_name)(_switch_to_json)

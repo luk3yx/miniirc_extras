@@ -4,7 +4,7 @@
 #
 
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
-from .. import Feature, Hostmask, IRC
+from .. import AbstractIRC, Feature, Hostmask
 
 json_types = (dict, list, tuple, str, int, float, bool, type(None)) # type: tuple
 _ujson_types = Union[dict, list, tuple, str, int, float, bool, None]
@@ -66,14 +66,14 @@ class AbstractChannel(_Base):
         return '<{} {}>'.format(type(self).__name__, repr(self.name))
 
     def __init__(self, name: str, topic: str = '',
-            irc: Optional[IRC] = None) -> None:
+            irc: Optional[AbstractIRC] = None) -> None:
         super().__init__()
         self.id    = name.lower() # type: str
         self.name  = name         # type: str
         self.topic = topic        # type: str
         self.users = set()        # type: Set[User]
 
-Channel = AbstractChannel # type: Callable[[str, str, Optional[IRC]], AbstractChannel]
+Channel = AbstractChannel # type: Callable[[str, str, Optional[AbstractIRC]], AbstractChannel]
 
 # The user class
 class User(_Base):
@@ -159,13 +159,13 @@ class User(_Base):
 
     def __init__(self, nick: str, ident: str = '???', host: str = '???', *,
             realname: str = '???', account: Optional[str] = None,
-            irc: Optional[IRC] = None) -> None:
+            irc: Optional[AbstractIRC] = None) -> None:
         super().__init__()
         self.id    = nick.lower() # type: str
         self.nick  = nick  # type: str
         self.ident = ident # type: str
         self.host  = host  # type: str
-        self._irc  = irc   # type: Optional[IRC]
+        self._irc  = irc   # type: Optional[AbstractIRC]
         self.realname = realname # type: str
         self.channels = set() # type: Set[AbstractChannel]
         self.account  = account
@@ -201,7 +201,7 @@ class CurrentUser(User):
             self._tracker._chans[channel.id]
 
     def __init__(self, tracker: 'UserTracker'):
-        irc = tracker._irc # type: IRC
+        irc = tracker._irc # type: AbstractIRC
         super().__init__(nick = irc.nick, irc = irc)
         self._tracker = tracker # type: UserTracker
         irc.quote('WHOIS', irc.nick)
@@ -260,7 +260,7 @@ class UserTracker:
         return res
 
     # Handle 001s
-    def _handle_001(self, irc: IRC, hostmask: Hostmask,
+    def _handle_001(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         self._chans.clear()
         self._users.clear()
@@ -268,7 +268,7 @@ class UserTracker:
         self._users[user.id] = user
 
     # Handle JOINs
-    def _handle_join(self, irc: IRC, hostmask: Hostmask,
+    def _handle_join(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         user = self[hostmask] # type: User
 
@@ -288,18 +288,18 @@ class UserTracker:
         user.add_to_channel(args[0])
 
     # Handle PARTs
-    def _handle_part(self, irc: IRC, hostmask: Hostmask,
+    def _handle_part(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         self[hostmask].remove_from_channel(args[0])
 
     # Handle KICKs
-    def _handle_kick(self, irc: IRC, hostmask: Hostmask,
+    def _handle_kick(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         if args[1] in self:
             self[args[1]].remove_from_channel(args[0])
 
     # Handle QUITs (and 401s)
-    def _handle_quit(self, irc: IRC, hostmask: Hostmask,
+    def _handle_quit(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         try:
             user = self[hostmask[0]]
@@ -314,7 +314,7 @@ class UserTracker:
             chan.remove_user(user)
 
     # Handle NICKs
-    def _handle_nick(self, irc: IRC, hostmask: Hostmask,
+    def _handle_nick(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         user = self[hostmask]
         del self._users[hostmask[0].lower()]
@@ -327,7 +327,7 @@ class UserTracker:
             irc.chans._handle_nick_(irc, hostmask, args) # type: ignore
 
     # Handle WHO replies
-    def _handle_352(self, irc: IRC, _: Hostmask,
+    def _handle_352(self, irc: AbstractIRC, _: Hostmask,
             args: List[str]) -> None:
         channel = args[1] # type: str
 
@@ -342,7 +342,7 @@ class UserTracker:
             irc.chans._handle_352_(irc, _, args) # type: ignore
 
     # Handle NAMES replies
-    def _handle_353(self, irc: IRC, hostmask: Hostmask,
+    def _handle_353(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         prefixes = str(irc.isupport.get('PREFIX', '!~&@+'))
         prefixes = prefixes[1:].split(')', 1)[-1]
@@ -362,11 +362,11 @@ class UserTracker:
         return '<UserTracker ' + repr(self._users) + '>'
 
     # Add handlers
-    def __init__(self, irc: IRC) -> None:
+    def __init__(self, irc: AbstractIRC) -> None:
         assert not irc.connected, 'The "users" feature must be enabled' \
             ' before connecting to IRC!'
 
-        self._irc   = irc # type: IRC
+        self._irc   = irc # type: AbstractIRC
         self._chans = {}  # type: Dict[str, AbstractChannel]
         self._users = {}  # type: Dict[str, User]
 

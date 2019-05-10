@@ -3,7 +3,7 @@
 # irc.ensure_connection: Decreases the ping interval temporarily
 #
 
-from .. import error, Feature, IRC
+from .. import AbstractIRC, error, Feature, Hostmask
 import threading
 from typing import List, Optional, Tuple
 
@@ -68,7 +68,7 @@ class ConnectionEnsurer:
         return self
 
     # Handle PONGs
-    def _handle_pong(self, irc: IRC, hostmask: Tuple[str, str, str],
+    def _handle_pong(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         if len(args) < 1 or args[-1] != _ping_arg:
             return
@@ -77,7 +77,7 @@ class ConnectionEnsurer:
             self._event.set()
 
     # Create new irc.ensure_connection() instances for IRC objects.
-    def __init__(self, irc: IRC) -> None:
+    def __init__(self, irc: AbstractIRC) -> None:
         self._event = threading.Event()
         self._irc   = irc
         irc.Handler('PONG')(self._handle_pong)

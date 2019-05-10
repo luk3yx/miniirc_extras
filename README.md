@@ -87,9 +87,20 @@ ModeList objects store a list of modes, and have the following functions:
 *You can access `ModeList` objects like `dict`s, however this will require
 extra type checking code if you plan to use mypy or another type checker.*
 
-## Hostmask objects
+## Misc classes
 
-miniirc_extras adds the abstract base class `miniirc_extras.Hostmask`:
+### AbstractIRC
+
+The `miniirc_extras.AbstractIRC` class provides an easy way to type check `IRC`
+objects without stub files.
+
+### DummyIRC
+
+A subclass of `miniirc.IRC` that can't connect to servers.
+
+### Hostmask
+
+miniirc_extras adds the abstract-ish class `miniirc_extras.Hostmask`:
 
 ```py
 from miniirc_extras import Hostmask
