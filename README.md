@@ -9,8 +9,8 @@
 An extension of miniirc ([GitHub](https://github.com/luk3yx/miniirc),
 [GitLab](https://gitlab.com/luk3yx/miniirc)) that adds more features.
 
-Note that miniirc_extras is pre-alpha software and should not be used in
-production.
+Note that miniirc_extras is alpha-level software and should probably not be
+used in production.
 
 Some features here may be merged into miniirc eventually.
 
