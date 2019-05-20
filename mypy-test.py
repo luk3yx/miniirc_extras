@@ -9,3 +9,4 @@ import miniirc_extras.features.chans
 import miniirc_extras.features.ensure_connection
 import miniirc_extras.features.testfeature
 import miniirc_extras.features.users
+import miniirc_extras.utils

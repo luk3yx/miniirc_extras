@@ -146,3 +146,20 @@ irc.require('feature_name')
 irc.feature_name()           # MyFeature called with <miniirc.IRC object>
 irc.feature_name.test_func() # test_func called with <miniirc.IRC object>
 ```
+
+## Miscellaneous functions
+
+Some miscellaneous functions and classes are located in `miniirc_extras.utils`.
+
+| Function          | Description                                             |
+| ----------------- | ------------------------------------------------------- |
+| `dict_to_tags(tags)` | Converts a dict containing strings and booleans into an IRCv3 tags string. Example: `dict_to_tags({'tag1': True, 'tag2': 'tag-data'})` → `b'@tag1;tag2=tag-data '` |
+| `tags_to_dict(tag_list, separator = ';')` | Converts a tags list (`tag1;tag2=tag-data`) joined by `separator` into a `dict` containing strings and booleans. |
+| `ircv3_message_parser(msg)` | The same as `miniirc.ircv3_message_parser`, but also accepts `bytes` and `bytearray`s. |
+| `hostmask_to_str(hostmask)` | Converts a `Hostmask` object into a `nick!user@host` string. |
+| `ircv2_message_unparser(cmd, hostmask, tags, args, *, encoding = 'utf-8')` | Converts miniirc-style message data into an IRCv2 message encoded with `encoding`. |
+| `ircv3_message_unparser(cmd, hostmask, tags, args, *, encoding = 'utf-8')` | The same as `ircv2_message_unparser`, but tags are added. |
+
+*Note that some of these functions may be available in miniirc as internal
+functions, however miniirc's internal functions can and will change in the
+future.*
