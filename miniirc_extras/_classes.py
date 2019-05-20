@@ -4,8 +4,7 @@
 #
 
 import abc, collections, io, miniirc, socket, threading
-from typing import Any, Callable, Dict, List, NoReturn, Optional, Set, Tuple, \
-    Union
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
 __all__ = ['AbstractIRC', 'DummyIRC', 'Hostmask', 'VersionInfo']
 
@@ -89,7 +88,7 @@ miniirc.ver = VersionInfo(miniirc.ver) # type: ignore
 
 # A dummy IRC class
 class DummyIRC(miniirc.IRC):
-    def connect(self) -> NoReturn: raise NotImplementedError
+    def connect(self) -> None: raise NotImplementedError
 
     def quote(self, *msg: str, force: Optional[bool] = None,
             tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
