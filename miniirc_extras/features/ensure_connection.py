@@ -10,7 +10,7 @@ from typing import List, Optional, Tuple
 class NotConnectedError(error):
     pass
 
-_ping_arg = ':miniirc_extras-connection_ensurer' # type: str
+_ping_arg = ':miniirc_extras connection_ensurer' # type: str
 
 # The ensure_connection feature
 @Feature('ensure_connection')
