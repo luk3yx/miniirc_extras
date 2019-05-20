@@ -5,7 +5,7 @@
 
 import miniirc
 from . import Hostmask
-from typing import Callable, Dict, List, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 __all__ = ['dict_to_tags', 'tags_to_dict', 'ircv3_message_parser',
     'hostmask_to_str', 'ircv2_message_unparser', 'ircv3_message_unparser']
@@ -79,3 +79,17 @@ def ircv3_message_unparser(cmd: str, hostmask: _hostmask, tags: Dict[str,
     if len(tags) > 0:
         res = dict_to_tags(tags) + res
     return res
+
+# Remove the ':' in args
+def remove_colon(func: Optional[Callable] = None) -> Callable:
+    if not func:
+        return remove_colon
+
+    def handler(*params):
+        args = params[-1] # type: List[str]
+        if args and args[-1].startswith(':'):
+            args[-1] = args[-1][1:]
+        return func(*params)
+    handler.__name__ = func.__name__
+    handler.__doc__  = func.__doc__
+    return handler

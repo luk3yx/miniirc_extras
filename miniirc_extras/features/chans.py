@@ -3,7 +3,7 @@
 # irc.tracking: User and channel mode tracking
 #
 
-from .. import AbstractIRC, error, Feature, Hostmask
+from .. import AbstractIRC, error, Feature, Hostmask, utils
 from . import users
 from .users import AbstractChannel, User
 from typing import Any, Callable, Dict, FrozenSet, List, Optional, Set, Tuple, \
@@ -202,10 +202,11 @@ class ChannelTracker:
         self[args.pop(0)].add_modes('+' + self._mode_lists[cmd], args)
 
     # Handle TOPICs
+    @utils.remove_colon
     def _handle_topic(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         if args[0] in self:
-            self[args[0]].topic = args[-1][1:]
+            self[args[0]].topic = args[-1]
 
     def _handle_332(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
@@ -248,7 +249,7 @@ class ChannelTracker:
         prefixes = self._353_prefixes
 
         chan = self._users.Channel(args[-2]) # type: Channel
-        for nick in args[-1][1:].split(' '):
+        for nick in args[-1].split(' '):
             # Get the modes
             modes = set()
             while nick and nick[0] in prefixes:

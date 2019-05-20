@@ -4,7 +4,7 @@
 #
 
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
-from .. import AbstractIRC, Feature, Hostmask
+from .. import AbstractIRC, Feature, Hostmask, utils
 
 json_types = (dict, list, tuple, str, int, float, bool, type(None)) # type: tuple
 _ujson_types = Union[dict, list, tuple, str, int, float, bool, None]
@@ -268,6 +268,7 @@ class UserTracker:
         self._users[user.id] = user
 
     # Handle JOINs
+    @utils.remove_colon
     def _handle_join(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         user = self[hostmask] # type: User
@@ -277,14 +278,12 @@ class UserTracker:
 
         # Handle extended JOINs
         if 'extended-join' in irc.active_caps and len(args) > 2:
-            user.realname = args[-1][1:]
+            user.realname = args[-1]
 
             account = args[-2] # type: str
             user.account = '' if account == '*' else account
 
         # Add the user to the channel
-        if args[0].startswith(':'):
-            args[0] = args[0][1:]
         user.add_to_channel(args[0])
 
     # Handle PARTs
@@ -314,6 +313,7 @@ class UserTracker:
             chan.remove_user(user)
 
     # Handle NICKs
+    @utils.remove_colon
     def _handle_nick(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         user = self[hostmask]
@@ -334,7 +334,7 @@ class UserTracker:
         user = self[Hostmask(args[5], '???', '???')] # type: User
         user.ident = args[2]
         user.host = args[3]
-        user.realname = args[-1][1:].split(' ', 1)[-1]
+        user.realname = args[-1].split(' ', 1)[-1]
         user.server = args[4]
 
         # Call the handler in chans.py
@@ -342,11 +342,12 @@ class UserTracker:
             irc.chans._handle_352_(irc, _, args) # type: ignore
 
     # Handle NAMES replies
+    @utils.remove_colon
     def _handle_353(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         prefixes = str(irc.isupport.get('PREFIX', '!~&@+'))
         prefixes = prefixes[1:].split(')', 1)[-1]
-        for nick in args[-1][1:].split(' '):
+        for nick in args[-1].split(' '):
             nick = nick.lstrip(prefixes) # type: ignore
             if not nick:
                 continue

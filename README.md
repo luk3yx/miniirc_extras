@@ -160,6 +160,23 @@ Some miscellaneous functions and classes are located in `miniirc_extras.utils`.
 | `ircv2_message_unparser(cmd, hostmask, tags, args, *, encoding = 'utf-8')` | Converts miniirc-style message data into an IRCv2 message encoded with `encoding`. |
 | `ircv3_message_unparser(cmd, hostmask, tags, args, *, encoding = 'utf-8')` | The same as `ircv2_message_unparser`, but tags are added. |
 
-*Note that some of these functions may be available in miniirc as internal
-functions, however miniirc's internal functions can and will change in the
-future.*
+*Note that `dict_to_tags` and `tags_to_dict` are available in miniirc as
+internal functions, however they can and will change.*
+
+### `miniirc_extras.utils.remove_colon`
+
+An at-rule to remove the `:` (if any) from `args[-1]` when running the handler.
+This must be placed *after* `@miniirc.Handler`.
+
+Example:
+
+```py
+@miniirc.Handler('PRIVMSG')
+def handle_privmsg(irc, hostmask, args):
+    print(args) # ['#channel', ':Test message']
+
+@miniirc.Handler('PRIVMSG')
+@miniirc_extras.utils.remove_colon
+def handle_privmsg(irc, hostmask, args):
+    print(args) # ['#channel', 'Test message']
+```
