@@ -30,6 +30,8 @@ class Hostmask(tuple, metaclass = _HostmaskMetaclass):
 class VersionInfo(tuple):
     """ A version info class, similar to sys.version_info. """
 
+    __slots__ = ()
+
     # TODO: Make this nicer
     @property
     def major(self) -> int:
@@ -65,10 +67,6 @@ class VersionInfo(tuple):
             if self.serial:
                 res = '{} {}'.format(res, self.serial)
         return res
-
-    # Prevent attributes being modified
-    def __setattr__(self, attr, value):
-        raise AttributeError("Can't set attributes on VersionInfo.")
 
     # Get an arguments list
     @staticmethod

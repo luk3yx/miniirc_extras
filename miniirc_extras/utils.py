@@ -12,7 +12,15 @@ __all__ = ['dict_to_tags', 'tags_to_dict', 'ircv3_message_parser',
 
 # Copy "internal functions" from miniirc
 dict_to_tags = miniirc._dict_to_tags
-tags_to_dict = miniirc._tags_to_dict
+
+def tags_to_dict(tag_list: Union[str, bytes, bytearray],
+        separator: str = ';') -> Dict[str, Union[str, bool]]:
+    if isinstance(tag_list, (bytes, bytearray)):
+        if tag_list.startswith(b'@') and tag_list.endswith(b' '):
+            tag_list = tag_list[1:-1]
+        tag_list = tag_list.decode('utf-8', 'replace')
+
+    return miniirc._tags_to_dict(tag_list, separator)
 
 # Allow bytes to be passed to the message parser
 _hostmask = Union[Hostmask, Tuple[str, str, str]]
@@ -26,7 +34,7 @@ def ircv3_message_parser(msg: Union[str, bytes, bytearray]) -> Tuple[str,
 # Convert a hostmask to a string
 def hostmask_to_str(hostmask: _hostmask) -> str:
     if not isinstance(hostmask, Hostmask):
-        raise TypeError('hostmask_to_string() expects a Hostmask object.')
+        raise TypeError('hostmask_to_str() expects a Hostmask object.')
 
     return '{}!{}@{}'.format(hostmask[0].replace('!', '_').replace('@', '_'),
         hostmask[1].replace('@', '_'), hostmask[2])
