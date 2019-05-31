@@ -13,8 +13,6 @@ _ujson_types = Union[dict, list, tuple, str, int, float, bool, None]
 class _Base:
     # Get items
     def __getitem__(self, item: str) -> _ujson_types:
-        if not isinstance(item, str):
-            raise TypeError('AbstractChannel data keys must be strings.')
         return self._data[item]
 
     def get(self, item: str, default: Any = None) -> Any:
@@ -32,6 +30,19 @@ class _Base:
             raise TypeError('{} data values must be JSON serializable.'.format(
                 type(self).__name__))
         self._data[item] = value
+
+    def __delitem__(self, item: str) -> None:
+        del self._data[item]
+
+    # Allow easier iterations
+    def items(self):
+        return self._data.items()
+
+    def keys(self):
+        return self._data.keys()
+
+    def values(self):
+        return self._data.values()
 
     # Create the data dictionary
     def __init__(self) -> None:
