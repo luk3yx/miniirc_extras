@@ -3,11 +3,11 @@
 # Miscellaneous miniirc_extras utilities
 #
 
-import miniirc
-from . import Hostmask
-from typing import Callable, Dict, List, Optional, Tuple, Union
+import functools, miniirc, re
+from . import AbstractIRC, DummyIRC, Hostmask
+from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 
-__all__ = ['dict_to_tags', 'tags_to_dict', 'ircv3_message_parser',
+__all__ = ['DummyIRC', 'dict_to_tags', 'tags_to_dict', 'ircv3_message_parser',
     'hostmask_to_str', 'ircv2_message_unparser', 'ircv3_message_unparser']
 
 # Copy "internal functions" from miniirc
@@ -85,6 +85,7 @@ def remove_colon(func: Optional[Callable] = None) -> Callable:
     if not func:
         return remove_colon
 
+    @functools.wraps(func)
     def handler(*params):
         args = params[-1] # type: List[str]
         if args and args[-1].startswith(':'):
@@ -93,3 +94,79 @@ def remove_colon(func: Optional[Callable] = None) -> Callable:
     handler.__name__ = func.__name__
     handler.__doc__  = func.__doc__
     return handler
+
+# Handle IRC URLs
+_schemes = {}
+def register_url_scheme(*schemes: str):
+    def n(func: Callable[..., AbstractIRC]) -> Callable[..., AbstractIRC]:
+        for scheme in schemes:
+            _schemes[str(scheme).lower()] = func
+        return func
+    return n
+
+class URLError(ValueError):
+    pass
+
+# A generic URL dispatcher
+def irc_from_url(url: str, **kwargs) -> AbstractIRC:
+    if '://' not in url:
+        raise URLError('Invalid URL.')
+    scheme, url2 = url.split('://', 1)
+    scheme = scheme.lower()
+    if scheme not in _schemes:
+        raise URLError('Unknown scheme ' + repr(scheme) + '.')
+
+    return _schemes[scheme](url2, **kwargs)
+
+# Create the default IRC schemes
+_irc_scheme_re = re.compile(
+    r'^(?:([^@/]+)@)?([^@/:]+)(?:\:([0-9]+))?(?:/([^\?]+))?(?:/?\?.*)?$')
+@register_url_scheme('ircs')
+def _ircs_scheme(url: str, ssl: Optional[bool] = True, **kwargs) \
+        -> miniirc.IRC:
+    match = _irc_scheme_re.match(url)
+    if not match:
+        raise URLError('Invalid IRC URL.')
+    nick, ip, raw_port, chans = match.groups()
+
+    nick = nick or kwargs.get('nick', '')
+    if 'nick' in kwargs:
+        del kwargs['nick']
+    elif not nick:
+        raise URLError('No nickname specified in the URL or kwargs.')
+
+    ip   = ip
+    port = 6697 # type: int
+    if raw_port:
+        port = int(raw_port)
+    elif 'port' in kwargs:
+        port = kwargs.pop('port')
+
+    channels = set(kwargs.pop('channels', ())) # type: set
+    if chans:
+        for chan in chans.split(','):
+            if not chan:
+                continue
+            elif chan[0].isalnum():
+                chan = '#' + chan
+            channels.add(chan)
+
+    return miniirc.IRC(ip, port, nick, channels, ssl = ssl, **kwargs)
+
+# irc:// and ircu://
+@register_url_scheme('irc')
+def _irc_scheme(url: str, ssl: Optional[bool] = None, **kwargs) -> miniirc.IRC:
+    return _ircs_scheme(url, ssl = ssl, **kwargs)
+
+@register_url_scheme('ircu')
+def _ircu_scheme(url: str, port: int = 6667, ssl: Optional[bool] = False,
+        **kwargs) -> miniirc.IRC:
+    return _ircs_scheme(url, port = port, ssl = ssl, **kwargs)
+
+# Because I am too lazy to put this in miniirc_discord
+@register_url_scheme('discord')
+def _discord_scheme(url: str, port: int = 0, **kwargs) -> AbstractIRC:
+    import miniirc_discord # type: ignore
+    url = url.split('/', 1)[0]
+    return miniirc_discord.Discord(url, 0, kwargs.pop('nick', 'unknown'),
+        **kwargs)
