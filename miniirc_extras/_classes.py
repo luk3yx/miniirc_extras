@@ -3,8 +3,9 @@
 # Base miniirc_extras classes
 #
 
-import abc, collections, io, miniirc, socket, threading
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+import abc, collections, io, miniirc, socket, sys, threading
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, \
+    Type, Union
 
 __all__ = ['AbstractIRC', 'DummyIRC', 'Hostmask', 'VersionInfo']
 
@@ -26,63 +27,40 @@ class Hostmask(tuple, metaclass = _HostmaskMetaclass):
             raise TypeError('{} is not a valid hostmask!'.format(res))
         return res
 
-# A version info class
-class VersionInfo(tuple):
-    """ A version info class, similar to sys.version_info. """
+# Backport namedtuple features - This is made public in utils.py
+if sys.version_info >= (3, 7):
+    _namedtuple = collections.namedtuple # type: Callable[..., Any]
+else:
+    def _namedtuple(typename: str, field_names: Union[str, Iterable[str]], *,
+            rename: bool = False, defaults: Optional[Iterable[Any]] = None,
+            module: Optional[str] = None):
+        # Try and auto-detect the module
+        if module is None:
+            try:
+                module = sys._getframe(1).f_globals.get('__name__', '__main__')
+            except:
+                pass
 
-    __slots__ = ()
+        if sys.version_info >= (3, 6):
+            res = collections.namedtuple(typename, field_names, # type: ignore
+                rename = rename, module = module)
+        else:
+            res = collections.namedtuple(typename, field_names, # type: ignore
+                rename = rename)
+            if module is not None:
+                res.__module__ = module
 
-    # TODO: Make this nicer
-    @property
-    def major(self) -> int:
-        return self[0]
-
-    @property
-    def minor(self) -> int:
-        return self[1]
-
-    @property
-    def micro(self) -> int:
-        return self[2]
-    patch = micro
-
-    @property
-    def releaselevel(self) -> str:
-        return self[3]
-
-    @property
-    def serial(self) -> int:
-        return self[4]
-
-    # Get the VersionInfo representation
-    def __repr__(self) -> str:
-        return '{}{}'.format(type(self).__name__,
-            tuple(self) if self.serial else self[:-1])
-
-    # Convert it into a human-readable string
-    def __str__(self) -> str:
-        res = '{}.{}.{}'.format(self.major, self.minor, self.micro)
-        if self.releaselevel != 'final' or self.serial:
-            res += ' ' + self.releaselevel
-            if self.serial:
-                res = '{} {}'.format(res, self.serial)
+        if defaults is not None:
+            res.__new__.__defaults__ = tuple(defaults) # type: ignore
         return res
 
-    # Get an arguments list
-    @staticmethod
-    def _get_args(major: int, minor: int, micro: int = 0,
-            releaselevel: str = 'final', serial: int = 0) -> Tuple[int, int,
-            int, str, int]:
-        return (int(major), int(minor), int(micro), str(releaselevel),
-            int(serial))
-
-    def __new__(cls, *args, **kwargs):
-        if len(args) == 1 and isinstance(args[0], tuple) and not kwargs:
-            args = args[0]
-        return tuple.__new__(cls, cls._get_args(*args, **kwargs))
+# A version info class
+VersionInfo = _namedtuple('VersionInfo', 'major minor micro releaselevel '
+    'serial', defaults = (0,0,0, 'final', 0), module = __name__)
+VersionInfo.patch = VersionInfo.micro # type: ignore
 
 # Make miniirc.ver a VersionInfo.
-miniirc.ver = VersionInfo(miniirc.ver) # type: ignore
+miniirc.ver = VersionInfo(*miniirc.ver) # type: ignore
 
 # A dummy IRC class
 class DummyIRC(miniirc.IRC):

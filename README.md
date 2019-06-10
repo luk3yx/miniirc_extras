@@ -100,10 +100,6 @@ extra type checking code if you plan to use mypy or another type checker.*
 The `miniirc_extras.AbstractIRC` class provides an easy way to type check `IRC`
 objects without stub files.
 
-### DummyIRC
-
-A subclass of `miniirc.IRC` that can't connect to servers.
-
 ### Hostmask
 
 miniirc_extras adds the abstract-ish class `miniirc_extras.Hostmask`:
@@ -153,12 +149,14 @@ Some miscellaneous functions and classes are located in `miniirc_extras.utils`.
 
 | Function          | Description                                             |
 | ----------------- | ------------------------------------------------------- |
+| `DummyIRC(...)`   | A subclass of `miniirc.IRC` that cannot connect to servers. `DummyIRC.__init__` has no required parameters. |
 | `dict_to_tags(tags)` | Converts a dict containing strings and booleans into an IRCv3 tags string. Example: `dict_to_tags({'tag1': True, 'tag2': 'tag-data'})` → `b'@tag1;tag2=tag-data '` |
 | `tags_to_dict(tag_list, separator = ';')` | Converts a tags list (`tag1;tag2=tag-data`) joined by `separator` into a `dict` containing strings and booleans. |
 | `ircv3_message_parser(msg)` | The same as `miniirc.ircv3_message_parser`, but also accepts `bytes` and `bytearray`s. |
 | `hostmask_to_str(hostmask)` | Converts a `Hostmask` object into a `nick!user@host` string. |
 | `ircv2_message_unparser(cmd, hostmask, tags, args, *, encoding = 'utf-8')` | Converts miniirc-style message data into an IRCv2 message encoded with `encoding`. |
 | `ircv3_message_unparser(cmd, hostmask, tags, args, *, encoding = 'utf-8')` | The same as `ircv2_message_unparser`, but tags are added. |
+| `namedtuple(...)` | Alias for `collections.namedtuple` on Python 3.7+, otherwise a wrapper that adds `defaults` and `module` keyword arguments. |
 
 *Note that `dict_to_tags` and `tags_to_dict` are available in miniirc as
 internal functions, however they can and will change.*
@@ -183,7 +181,7 @@ def handle_privmsg(irc, hostmask, args):
 
 ### `miniirc_extras.utils.HandlerGroup`
 
-Allows you to create handlers a group of handlers and apply them to `IRC`
+Allows you to create a group of handlers and apply them in bulk to `IRC`
 objects.
 
 | Method            | Description                                             |

@@ -5,10 +5,16 @@
 
 import functools, miniirc, re
 from . import AbstractIRC, DummyIRC, error as _error, Hostmask
+from ._classes import _namedtuple as namedtuple
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 
 __all__ = ['DummyIRC', 'dict_to_tags', 'tags_to_dict', 'ircv3_message_parser',
-    'hostmask_to_str', 'ircv2_message_unparser', 'ircv3_message_unparser']
+    'hostmask_to_str', 'ircv2_message_unparser', 'ircv3_message_unparser',
+    'namedtuple']
+
+if namedtuple.__module__.endswith('._classes'):
+    namedtuple.__name__ = namedtuple.__qualname__ = 'namedtuple'
+    namedtuple.__module__ = __name__
 
 # Copy "internal functions" from miniirc
 dict_to_tags = miniirc._dict_to_tags
