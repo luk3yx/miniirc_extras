@@ -21,9 +21,9 @@ def Feature(name: str) -> Callable[[_c], _c]:
     return res
 
 # Require features
-def require(self, feature: str) -> Optional[_c]:
+def require(self, feature: str) -> _c:
     if hasattr(self, feature):
-        return None
+        return getattr(self, feature)
     elif feature not in _features:
         raise FeatureNotFoundError('The feature {} was not found.'.format(
             repr(feature)

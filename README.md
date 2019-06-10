@@ -180,3 +180,15 @@ def handle_privmsg(irc, hostmask, args):
 def handle_privmsg(irc, hostmask, args):
     print(args) # ['#channel', 'Test message']
 ```
+
+### `miniirc_extras.utils.HandlerGroup`
+
+Allows you to create handlers a group of handlers and apply them to `IRC`
+objects.
+
+| Method            | Description                                             |
+| ----------------- | ------------------------------------------------------- |
+| `Handler(...)`    | Adds a `Handler` to the group, uses the same syntax as `irc.Handler`. |
+| `CmdHandler(...)`    | Adds a `CmdHandler` to the group, uses the same syntax as `irc.CmdHandler`. |
+| `add_to(irc_or_group)` | Adds all the handlers in this group to an IRC object or another handler group. |
+| `copy()`          | Returns another handler group with the same handlers as this one. |

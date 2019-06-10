@@ -4,7 +4,7 @@
 #
 
 import functools, miniirc, re
-from . import AbstractIRC, DummyIRC, Hostmask
+from . import AbstractIRC, DummyIRC, error as _error, Hostmask
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 
 __all__ = ['DummyIRC', 'dict_to_tags', 'tags_to_dict', 'ircv3_message_parser',
@@ -104,7 +104,7 @@ def register_url_scheme(*schemes: str):
         return func
     return n
 
-class URLError(ValueError):
+class URLError(_error):
     pass
 
 # A generic URL dispatcher
@@ -166,7 +166,70 @@ def _ircu_scheme(url: str, port: int = 6667, ssl: Optional[bool] = False,
 # Because I am too lazy to put this in miniirc_discord
 @register_url_scheme('discord')
 def _discord_scheme(url: str, port: int = 0, **kwargs) -> AbstractIRC:
-    import miniirc_discord # type: ignore
+    try:
+        import miniirc_discord # type: ignore
+    except ImportError as e:
+        raise URLError('miniirc_discord is required to handle Discord URLs.') \
+            from e
     url = url.split('/', 1)[0]
     return miniirc_discord.Discord(url, 0, kwargs.pop('nick', 'unknown'),
         **kwargs)
+
+# Handler groups
+class _Handler:
+    __slots__ = ('func', 'events', 'cmd_arg', 'ircv3')
+
+    def add_to(self, group: 'Union[AbstractIRC, HandlerGroup]') -> None:
+        handler = group.CmdHandler if self.cmd_arg else group.Handler
+        handler(*self.events, ircv3 = self.ircv3)(self.func)
+
+    def __init__(self, func: Callable, events: Tuple[str, ...], cmd_arg: bool,
+            colon: bool, ircv3: bool) -> None:
+        if len(events) == 0 and not cmd_arg:
+            raise TypeError('Handler() called without arguments.')
+        elif not colon:
+            func = remove_colon(func)
+        self.func    = func     # type: Callable
+        self.events  = events   # type: Tuple[str, ...]
+        self.cmd_arg = cmd_arg  # type: bool
+        self.ircv3   = ircv3    # type: bool
+
+class HandlerGroup:
+    __slots__ = ('_handlers',)
+
+    # Generic add_handler function
+    def _add_handler(self, events: Tuple[str, ...], cmd_arg: bool, colon: bool,
+            ircv3: bool) -> Callable[[Callable], Callable]:
+        def _finish_handler(func: Callable) -> Callable:
+            self._handlers.add(_Handler(func, events, cmd_arg, colon, ircv3))
+            return func
+
+        return _finish_handler
+
+    # User-facing Handler and CmdHandler
+    def Handler(self, *events: str, colon = True, ircv3 = False):
+        return self._add_handler(events, False, colon, ircv3)
+
+    def CmdHandler(self, *events: str, colon = True, ircv3 = False):
+        return self._add_handler(events, True, colon, ircv3)
+
+    # Copy to another handler group
+    def add_to(self, group: 'Union[AbstractIRC, HandlerGroup]') -> None:
+        if isinstance(group, HandlerGroup):
+            group._handlers.update(self._handlers)
+        elif not hasattr(group, 'Handler'):
+            raise TypeError('add_to() expects a HandlerGroup-like object, not '
+                + type(group).__name__)
+        elif group is not self:
+            for handler in self._handlers:
+                handler.add_to(group)
+
+    # Copy to a new handler group
+    def copy(self) -> 'HandlerGroup':
+        group = HandlerGroup()
+        group._handlers.update(self._handlers)
+        return group
+
+    # Add self._handlers
+    def __init__(self):
+        self._handlers = set() # type: Set[_Handler]
