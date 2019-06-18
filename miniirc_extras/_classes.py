@@ -29,7 +29,7 @@ class Hostmask(tuple, metaclass = _HostmaskMetaclass):
 
 # Backport namedtuple features - This is made public in utils.py
 if sys.version_info >= (3, 7):
-    _namedtuple = collections.namedtuple # type: Callable[..., Any]
+    from collections import namedtuple as _namedtuple
 else:
     def _namedtuple(typename: str, field_names: Union[str, Iterable[str]], *,
             rename: bool = False, defaults: Optional[Iterable[Any]] = None,

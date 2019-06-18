@@ -86,20 +86,28 @@ def ircv3_message_unparser(cmd: str, hostmask: _hostmask, tags: Dict[str,
         res = dict_to_tags(tags) + res
     return res
 
-# Remove the ':' in args
-def remove_colon(func: Optional[Callable] = None) -> Callable:
-    if not func:
-        return remove_colon
+# Mostly backwards compatibility
+if miniirc.ver >= (1,4,0):
+    def remove_colon(func: Optional[Callable] = None) -> Callable:
+        if not func:
+            return remove_colon
 
-    @functools.wraps(func)
-    def handler(*params):
-        args = params[-1] # type: List[str]
-        if args and args[-1].startswith(':'):
-            args[-1] = args[-1][1:]
-        return func(*params)
-    handler.__name__ = func.__name__
-    handler.__doc__  = func.__doc__
-    return handler
+        # Please don't do this in your own code.
+        getattr(func, '__func__', func).miniirc_colon = True
+
+        return func
+else:
+    def remove_colon(func: Optional[Callable] = None) -> Callable:
+        if not func:
+            return remove_colon
+
+        @functools.wraps(func)
+        def handler(*params):
+            args = params[-1] # type: List[str]
+            if args and args[-1].startswith(':'):
+                args[-1] = args[-1][1:]
+            return func(*params)
+        return handler
 
 # Handle IRC URLs
 _schemes = {}
