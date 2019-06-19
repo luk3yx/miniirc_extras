@@ -87,7 +87,7 @@ class AbstractIRC(abc.ABC):
 
     sock = None # type: socket.socket
     ip = None # type: str
-    port = None # type: str
+    port = None # type: int
     nick = None # type: str
     channels = None # type: Set[str]
     ident = None # type: str
