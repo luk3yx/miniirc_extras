@@ -14,7 +14,7 @@ from typing import Any, List
 from ._classes import *
 
 # Version info
-ver     = VersionInfo(0,2,1, 'alpha')
+ver     = VersionInfo(0,2,2, 'alpha')
 version = 'miniirc v{} / miniirc_extras v{}'.format(miniirc.ver, ver)
 
 # The base exception class
@@ -26,6 +26,8 @@ if hasattr(miniirc, 'Feature'):
     from miniirc import Feature # type: ignore
 else:
     from ._require import Feature
+
+AbstractIRC.require = miniirc.IRC.require
 
 # Load features on-the-fly when required
 def _core_feature(name: str) -> None:

@@ -24,6 +24,7 @@ After importing miniirc_extras, features can be loaded with
 
  - `chans`: Channel mode tracking, must be loaded while miniirc is disconnected.
  - `ensure_connection`: https://github.com/luk3yx/miniirc/issues/15
+ - `mp`: *(WIP)* Multiprocessing handlers for miniirc.
  - `testfeature`: Debugging
  - `users`: User tracking, must be loaded while miniirc is disconnected.
  - `_json` *(WIP)*: Parse JSON messages.
@@ -92,6 +93,23 @@ ModeList objects store a list of modes, and have the following functions:
 
 *You can access `ModeList` objects like `dict`s, however this will require
 extra type checking code if you plan to use mypy or another type checker.*
+
+### `irc.mp`
+
+Multiprocessing handlers. You can create multiprocessing handlers with
+`irc.mp.Handler` and `irc.mp.CmdHandler`. These handlers are called with the
+limited `RestrictedIRC` object (a subclass of `AbstractIRC`) instead of the
+normal `IRC` object.
+
+The following functions/variables work with `RestrictedIRC`:
+
+`active_caps`, `channels`, `connect_modes`, `ctcp`, `debug`, `ident`, `ip`,
+`ircv3_caps`, `isupport`, `me`, `msg`, `nick`, `notice`, `persist`,
+`ping_interval`, `port`, `quit_message`, `quote`, `realname`, `ssl`,
+`verify_ssl`
+
+Trying to modify these variables will result in an `AttributeError` or the set
+operation silently failing.
 
 ## Misc classes
 
@@ -182,6 +200,13 @@ def handle_privmsg(irc, hostmask, args):
 def handle_privmsg(irc, hostmask, args):
     print(args) # ['#channel', 'Test message']
 ```
+
+### `miniirc_extras.utils.irc_from_url`
+
+Allows you to create `IRC` objects from URLs, for example
+`irc_from_url('irc://nick@ssl-server.example/#channel1,#channel2')` will create
+an `IRC` object with the nickname `nick`. Any keyword arguments passed to
+`irc_from_url` are sent to `IRC()`.
 
 ### `miniirc_extras.utils.HandlerGroup`
 

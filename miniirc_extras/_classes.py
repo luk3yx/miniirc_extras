@@ -62,19 +62,6 @@ VersionInfo.patch = VersionInfo.micro # type: ignore
 # Make miniirc.ver a VersionInfo.
 miniirc.ver = VersionInfo(*miniirc.ver) # type: ignore
 
-# A dummy IRC class
-class DummyIRC(miniirc.IRC):
-    def connect(self) -> None: raise NotImplementedError
-
-    def quote(self, *msg: str, force: Optional[bool] = None,
-            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
-        pass
-
-    def __init__(self, ip: str = '', port: int = 0, nick: str = '',
-            channels = (), **kwargs) -> None:
-        kwargs['auto_connect'] = False
-        super().__init__(ip, port, nick, channels, **kwargs)
-
 # An abstract IRC class
 _hostmask = Union[Hostmask, Tuple[str, str, str]]
 class AbstractIRC(abc.ABC):
@@ -104,36 +91,28 @@ class AbstractIRC(abc.ABC):
 
     ns_identity = None # type: Optional[Union[Tuple[str, str], str]]
 
-    @abc.abstractmethod
+    # Functions copied from miniirc.IRC.
     def require(self, feature: str) -> Optional[Callable[[miniirc.IRC], Any]]:
         ...
-
-    @abc.abstractmethod
     def debug(self, *args: Any, **kwargs) -> None: ...
-
-    @abc.abstractmethod
     def quote(self, *msg: str, force: Optional[bool] = None,
         tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
-
-    @abc.abstractmethod
     def msg(self, target: str, *msg: str,
         tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
-    @abc.abstractmethod
     def notice(self, target: str, *msg: str,
         tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
-    @abc.abstractmethod
     def ctcp(self, target: str, *msg: str, reply: bool = False,
         tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
-    @abc.abstractmethod
     def me(self, target: str, *msg: str,
         tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
 
+    # Abstract functions.
     @abc.abstractmethod
-    def Handler(self, *events: str, ircv3: bool = False) \
-        -> Callable: ...
+    def Handler(self, *events: str, colon: bool = False,
+        ircv3: bool = False) -> Callable: ...
     @abc.abstractmethod
-    def CmdHandler(self, *events: str, ircv3: bool = False) \
-        -> Callable: ...
+    def CmdHandler(self, *events: str, colon: bool = False,
+        ircv3: bool = False) -> Callable: ...
 
     @abc.abstractmethod
     def connect(self) -> None: ...
@@ -155,12 +134,6 @@ class AbstractIRC(abc.ABC):
         tags: Dict[str, Union[str, bool]], args: List[str]) -> bool: ...
 
     @abc.abstractmethod
-    def _handle_cap(self, cap: str) -> None: ...
-
-    @abc.abstractmethod
-    def _main(self) -> None: ...
-
-    @abc.abstractmethod
     def main(self) -> threading.Thread: ...
 
     @abc.abstractmethod
@@ -175,4 +148,23 @@ class AbstractIRC(abc.ABC):
         quit_message: str = 'I grew sick and died.', ping_interval: int = 60,
         verify_ssl: bool = True) -> None: ...
 
+# Replace some functions with ones from miniirc.IRC
+for func in ('debug', 'quote', 'msg', 'notice', 'ctcp', 'me'):
+    setattr(AbstractIRC, func, getattr(miniirc.IRC, func)) # type: ignore
+del func
+
 AbstractIRC.register(miniirc.IRC)
+
+# A dummy IRC class
+# TODO: Move this to miniirc_extras.utils
+class DummyIRC(miniirc.IRC):
+    def connect(self) -> None: raise NotImplementedError
+
+    def quote(self, *msg: str, force: Optional[bool] = None,
+            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
+        pass
+
+    def __init__(self, ip: str = '', port: int = 0, nick: str = '',
+            channels = (), **kwargs) -> None:
+        kwargs['auto_connect'] = False
+        super().__init__(ip, port, nick, channels, **kwargs)
