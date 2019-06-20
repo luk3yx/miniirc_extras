@@ -6,6 +6,7 @@
 import functools, miniirc, re
 from . import AbstractIRC, DummyIRC, error as _error, Hostmask
 from ._classes import _namedtuple as namedtuple
+from ._numerics import numerics
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 
 __all__ = ['DummyIRC', 'dict_to_tags', 'tags_to_dict', 'ircv3_message_parser',

@@ -219,3 +219,38 @@ objects.
 | `CmdHandler(...)`    | Adds a `CmdHandler` to the group, uses the same syntax as `irc.CmdHandler`. |
 | `add_to(irc_or_group)` | Adds all the handlers in this group to an IRC object or another handler group. |
 | `copy()`          | Returns another handler group with the same handlers as this one. |
+
+### `miniirc_extras.utils.numerics`
+
+An `Enum` of most of the IRC numerics in [RFC 1459], [RFC 2812], and
+[modern.ircdocs.horse](https://modern.ircdocs.horse/#numerics). See
+`miniirc_extras/_numerics.py` for a list of
+numerics and their names.
+
+Example:
+```py
+import miniirc
+from miniirc_extras.utils import numerics
+
+@miniirc.Handler(numerics.RPL_WELCOME, colon = False)
+def handler(irc, hostmask, args):
+    print('Connected to IRC!')
+```
+
+Another example:
+```py
+>>> from miniirc_extras.utils import numerics
+>>> numerics.RPL_ISUPPORT
+<numerics.RPL_ISUPPORT: 005>
+>>> numerics['RPL_MOTD']
+<numerics.RPL_MOTD: 372>
+>>> numerics(465)
+<numerics.ERR_YOUREBANNEDCREEP: 465>
+>>> numerics('422')
+<numerics.ERR_NOMOTD: 422>
+>>> str(numerics.RPL_YOURHOST)
+'002'
+```
+
+[RFC 1459]: https://tools.ietf.org/html/rfc1459
+[RFC 2812]: https://tools.ietf.org/html/rfc2812
