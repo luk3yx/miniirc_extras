@@ -36,7 +36,7 @@ def _core_feature(name: str) -> None:
     @Feature(name)
     def _feature(irc: miniirc.IRC) -> Any:
         if name.startswith('_'):
-            print('WARNING: WIP feature loaded!', file = sys.stderr)
+            print('WARNING: WIP feature loaded!', file=sys.stderr)
 
         __import__(module)
         return irc.require(name)

@@ -57,18 +57,18 @@ def json_parser(msg):
     return cmd, hostmask, tags, args
 
 # irc.quote() hack
-def _irc_quote_hack(irc, *msg, force = None, tags = None):
+def _irc_quote_hack(irc, *msg, force=None, tags=None):
     cmd, hostmask, _, args = miniirc.ircv3_message_parser(' '.join(msg))
     if cap_name not in irc.active_caps:
         irc.quote = miniirc.IRC.quote
-        return miniirc.IRC.quote(irc, *msg, force = force, tags = tags)
+        return miniirc.IRC.quote(irc, *msg, force=force, tags=tags)
 
     args.insert(0, cmd)
 
     if type(tags) == dict:
         args.insert(0, tags)
 
-    args = json.dumps(args, separators = (',', ':'))
+    args = json.dumps(args, separators=(',', ':'))
     irc.sock.sendall(args.encode('utf-8') + b'\r\n')
 
 # Switch to JSON

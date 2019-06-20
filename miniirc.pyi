@@ -27,7 +27,7 @@ except ImportError:
 _global_handlers: Dict[str, Callable] = {}
 
 _add_handler_return = Callable[[Callable], Callable]
-def _add_handler(handlers, events, ircv3, cmd_arg = ...) \
+def _add_handler(handlers, events, ircv3, cmd_arg, colon) \
         -> _add_handler_return: ...
 
 def Handler(*events: Union[str, int], colon: bool = True,
@@ -111,10 +111,10 @@ class IRC:
         tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
 
     # Allow per-connection handlers
-    def Handler(self, *events: Union[str, int], colon: bool = False,
+    def Handler(self, *events: Union[str, int], colon: bool = True,
         ircv3: bool = False) -> _add_handler_return: ...
 
-    def CmdHandler(self, *events: Union[str, int], colon: bool = False,
+    def CmdHandler(self, *events: Union[str, int], colon: bool = True,
         ircv3: bool = False) -> _add_handler_return: ...
 
     # The connect function

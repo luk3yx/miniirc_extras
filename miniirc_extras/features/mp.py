@@ -17,7 +17,10 @@ class RestrictedIRC(AbstractIRC):
     # Send all irc.quote() and irc.debug() messages through the Queue.
     def quote(self, *msg: str, force: Optional[bool] = None,
             tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
-        if self.__sendq:
+        if not all(isinstance(i, str) for i in msg):
+            raise TypeError('irc.quote() expects all positional arguments to '
+                'be strings.')
+        elif self.__sendq:
             self.__sendq.put((msg, force, tags))
 
     def debug(self, *args, **kwargs) -> None:
@@ -42,7 +45,7 @@ class RestrictedIRC(AbstractIRC):
         super().__setattr__(attr, value)
 
     # Copy attributes
-    def __init__(self, orig: AbstractIRC, queue = None) -> None:
+    def __init__(self, orig: AbstractIRC, queue=None) -> None:
         if not isinstance(orig, AbstractIRC):
             raise TypeError('RestrictedIRC.__init__ expects an AbstractIRC.')
         self.ip = orig.ip # type: str
@@ -137,7 +140,7 @@ class MultiprocessingFeature:
                 elif len(data) == 2:
                     self._irc.debug(*data[0], **data[1])
                 elif len(data) == 3:
-                    self._irc.quote(*data[0], force = data[1], tags = data[2])
+                    self._irc.quote(*data[0], force=data[1], tags=data[2])
             except queue.Empty:
                 pass
             except:

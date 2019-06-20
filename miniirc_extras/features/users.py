@@ -213,7 +213,7 @@ class CurrentUser(User):
 
     def __init__(self, tracker: 'UserTracker'):
         irc = tracker._irc # type: AbstractIRC
-        super().__init__(nick = irc.nick, irc = irc)
+        super().__init__(nick=irc.nick, irc=irc)
         self._tracker = tracker # type: UserTracker
         irc.quote('WHOIS', irc.nick)
 
@@ -252,7 +252,7 @@ class UserTracker:
         elif isinstance(item, Hostmask):
             id = item[0].lower()
             if id not in self._users:
-                self._users[id] = User(*item, irc = self._irc)
+                self._users[id] = User(*item, irc=self._irc)
                 if item[2] != '???':
                     self._irc.quote('WHOIS', item[0])
 

@@ -81,7 +81,7 @@ def ircv3_message_unparser(cmd: str, hostmask: _hostmask, tags: Dict[str,
         Union[str, bool]], args: List[str], *, encoding: str = 'utf-8') \
         -> bytes:
     res = ircv2_message_unparser(cmd, hostmask, tags, args,
-        encoding = encoding) # type: bytes
+        encoding=encoding) # type: bytes
 
     if len(tags) > 0:
         res = dict_to_tags(tags) + res
@@ -166,17 +166,17 @@ def _ircs_scheme(url: str, ssl: Optional[bool] = True, **kwargs) \
                 chan = '#' + chan
             channels.add(chan)
 
-    return miniirc.IRC(ip, port, nick, channels, ssl = ssl, **kwargs)
+    return miniirc.IRC(ip, port, nick, channels, ssl=ssl, **kwargs)
 
 # irc:// and ircu://
 @register_url_scheme('irc')
 def _irc_scheme(url: str, ssl: Optional[bool] = None, **kwargs) -> miniirc.IRC:
-    return _ircs_scheme(url, ssl = ssl, **kwargs)
+    return _ircs_scheme(url, ssl=ssl, **kwargs)
 
 @register_url_scheme('ircu')
 def _ircu_scheme(url: str, port: int = 6667, ssl: Optional[bool] = False,
         **kwargs) -> miniirc.IRC:
-    return _ircs_scheme(url, port = port, ssl = ssl, **kwargs)
+    return _ircs_scheme(url, port=port, ssl=ssl, **kwargs)
 
 # Because I am too lazy to put this in miniirc_discord
 @register_url_scheme('discord')
@@ -196,7 +196,7 @@ class _Handler:
 
     def add_to(self, group: 'Union[AbstractIRC, HandlerGroup]') -> None:
         handler = group.CmdHandler if self.cmd_arg else group.Handler
-        handler(*self.events, ircv3 = self.ircv3)(self.func)
+        handler(*self.events, ircv3=self.ircv3)(self.func)
 
     def __init__(self, func: Callable, events: Tuple[str, ...], cmd_arg: bool,
             colon: bool, ircv3: bool) -> None:
@@ -222,10 +222,10 @@ class HandlerGroup:
         return _finish_handler
 
     # User-facing Handler and CmdHandler
-    def Handler(self, *events: str, colon = True, ircv3 = False):
+    def Handler(self, *events: str, colon=True, ircv3=False):
         return self._add_handler(events, False, colon, ircv3)
 
-    def CmdHandler(self, *events: str, colon = True, ircv3 = False):
+    def CmdHandler(self, *events: str, colon=True, ircv3=False):
         return self._add_handler(events, True, colon, ircv3)
 
     # Copy to another handler group
