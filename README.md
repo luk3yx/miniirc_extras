@@ -241,7 +241,7 @@ Another example:
 ```py
 >>> from miniirc_extras.utils import numerics
 >>> numerics.RPL_ISUPPORT
-<numerics.RPL_ISUPPORT: 005>
+<numerics.RPL_ISUPPORT: 0​0​5>
 >>> numerics['RPL_MOTD']
 <numerics.RPL_MOTD: 372>
 >>> numerics(465)
