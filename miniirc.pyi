@@ -30,11 +30,11 @@ _add_handler_return = Callable[[Callable], Callable]
 def _add_handler(handlers, events, ircv3, cmd_arg = ...) \
         -> _add_handler_return: ...
 
-def Handler(*events: str, colon: bool = True, ircv3: bool = False) \
-    -> _add_handler_return: ...
+def Handler(*events: Union[str, int], colon: bool = True,
+    ircv3: bool = False) -> _add_handler_return: ...
 
-def CmdHandler(*events: str, colon: bool = True, ircv3: bool = False) \
-    -> _add_handler_return: ...
+def CmdHandler(*events: Union[str, int], colon: bool = True,
+    ircv3: bool = False) -> _add_handler_return: ...
 
 # Parse IRCv3 tags
 ircv3_tag_escapes: Dict[str, str] = {':': ';', 's': ' ', 'r': '\r', 'n': '\n'}
@@ -111,10 +111,10 @@ class IRC:
         tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
 
     # Allow per-connection handlers
-    def Handler(self, *events: str, colon: bool = False,
+    def Handler(self, *events: Union[str, int], colon: bool = False,
         ircv3: bool = False) -> _add_handler_return: ...
 
-    def CmdHandler(self, *events: str, colon: bool = False,
+    def CmdHandler(self, *events: Union[str, int], colon: bool = False,
         ircv3: bool = False) -> _add_handler_return: ...
 
     # The connect function
