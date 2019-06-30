@@ -252,5 +252,85 @@ Another example:
 '002'
 ```
 
+### `miniirc_extras.formatting`
+
+Text formatting. Inspired by [ircmessage](https://pypi.org/project/ircmessage/).
+
+#### `colours`/`colors` enum
+
+The `colours` (or `colors`) enum contains colours and their corresponding code.
+Do not use these to format text, instead use the below `style` and `colorize`
+functions.
+
+#### `Styler` objects
+
+Styler objects are callables that apply IRC formatting to strings.
+
+```py
+miniirc_extras.formatting.Styler(fg=None, bg=None, *,
+        bold: bool = False, italics: bool = False, underline: bool = False,
+        reverse_colour: bool = False, strikethrough: bool = False,
+        spoiler: bool = False, monospace: bool = False, reset: bool = True)
+```
+
+*Note that `Styler` accepts both `reverse_colour` and `reverse_color`.*
+
+`fg` and `bg` can be strings or values from the aforementioned `Enum`.
+
+The parameters passed to `__init__` are available as attributes on the object,
+for example `styler.bold`.
+
+Setting `reset` to `False` is not recommended, as when enabled it only resets
+any changed formatting.
+
+For cleaner code, you can also use
+`miniirc_extras.formatting.style(text, fg=None, ...)`.
+
+**Example:**
+
+```py
+from miniirc_extras import formatting
+
+styler = formatting.Styler('red', bold=True, monospace=True)
+msg = styler('Test message')
+print(styler.fg)    # <colours.red: 04>
+print(styler.fg)    # None
+print(styler.bold)  # True
+print(repr(msg))    # '\x11\x02\x0304Test message\x0399\x02\x11'
+
+msg2 = formatting.style('Test message', 'red', bold=True, monospace=True)
+assert msg == msg2 # No error
+
+print(repr(formatting.unstyle(msg))) # 'Test message'
+```
+
+#### "Lightweight" stylers
+
+There are a number of predefined `Styler`s that are more efficient (if you are
+only adding one style):
+
+```py
+bold            = Styler(bold=True)
+italics         = Styler(italics=True)
+italic          = italics
+underline       = Styler(underline=True)
+reverse_colour  = Styler(reverse_colour=True)
+reverse_color   = reverse_colour
+strikethrough   = Styler(strikethrough=True)
+monospace       = Styler(monospace=True)
+spoiler         = Styler(spoiler=True)
+```
+
+Lightweight stylers are subclassed from `Styler` and will run slightly faster,
+provided you are only changing one style.
+
+You can also use `miniirc_extras.formatting.colorize(text, fg)` (or
+`miniirc_extras.formatting.colourise(text, fg)`) if you are only changing the
+foreground colour/color for a similarly small speed improvement.
+
+*Note that `formatting.style(text, 'red', bold=True)` is recommended over
+`formatting.bold(formatting.colorize(text, 'red'))`, as it is more readable
+and probably faster.*
+
 [RFC 1459]: https://tools.ietf.org/html/rfc1459
 [RFC 2812]: https://tools.ietf.org/html/rfc2812
