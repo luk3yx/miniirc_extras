@@ -57,7 +57,7 @@ class colours(_CodeEnum):
     light_green =  9
     lime        =  9
     teal        = 10
-    cyan        = 11
+    cyan        = 10
     light_cyan  = 11
     light_blue  = 12
     pink        = 13
