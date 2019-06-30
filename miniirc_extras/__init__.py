@@ -14,7 +14,7 @@ from typing import Any, List
 from ._classes import *
 
 # Version info
-ver     = VersionInfo(0,2,4, 'alpha')
+ver     = VersionInfo(0,2,5, 'alpha')
 version = 'miniirc v{} / miniirc_extras v{}'.format(miniirc.ver, ver)
 
 # The base exception class

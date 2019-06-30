@@ -87,7 +87,7 @@ class _codes(_StrEnum):
     monospace = '\x11'
 
     # I don't know if this works in any client yet.
-    spoiler = '\x0300,00'
+    spoiler = '\x0301,01'
 
 def _get_code(c: Union[colours, str]) -> colours:
     if isinstance(c, str):
@@ -115,7 +115,7 @@ class Styler:
         if not self.reset:
             return char + text
         elif char.startswith('\x03'):
-            if ',' in text:
+            if ',' in char:
                 return char + text + '\x0399,99'
             else:
                 return char + text + '\x0399'
@@ -129,8 +129,8 @@ class Styler:
             text = self._wrap(text, _codes.reverse_colour)
 
         if self.bg:
-            text = self._wrap(text, '\x03{},{}'.format(self.fg or _codes.reset,
-                self.bg))
+            text = self._wrap(text, '\x03{},{}'.format(self.fg
+                or colours.default, self.bg))
         elif self.fg:
             text = self._wrap(text, '\x03' + str(self.fg))
 
