@@ -6,8 +6,8 @@
 #
 
 import miniirc, os, sys
-assert hasattr(miniirc, 'ver') and miniirc.ver >= (1,3,2), \
-    'miniirc_extras requires miniirc >= 1.3.2.'
+assert hasattr(miniirc, 'ver') and miniirc.ver >= (1,4,0), \
+    'miniirc_extras requires miniirc >= 1.4.0.'
 
 from miniirc import CmdHandler, Handler, IRC
 from typing import Any, List

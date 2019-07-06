@@ -279,8 +279,7 @@ class UserTracker:
         self._users[user.id] = user
 
     # Handle JOINs
-    @utils.remove_colon
-    def _handle_join(self, irc: AbstractIRC, hostmask: Hostmask,
+    def _chandle_join(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         user = self[hostmask] # type: User
 
@@ -324,8 +323,7 @@ class UserTracker:
             chan.remove_user(user)
 
     # Handle NICKs
-    @utils.remove_colon
-    def _handle_nick(self, irc: AbstractIRC, hostmask: Hostmask,
+    def _chandle_nick(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         user = self[hostmask]
         del self._users[hostmask[0].lower()]
@@ -353,8 +351,7 @@ class UserTracker:
             irc.chans._handle_352_(irc, _, args) # type: ignore
 
     # Handle NAMES replies
-    @utils.remove_colon
-    def _handle_353(self, irc: AbstractIRC, hostmask: Hostmask,
+    def _chandle_353(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         prefixes = str(irc.isupport.get('PREFIX', '!~&@+'))
         prefixes = prefixes[1:].split(')', 1)[-1]
@@ -385,5 +382,7 @@ class UserTracker:
         for attr in dir(self):
             if attr.startswith('_handle_'):
                 irc.Handler(attr[8:].upper())(getattr(self, attr))
+            elif attr.startswith('_chandle_'):
+                irc.Handler(attr[9:].upper(), colon=False)(getattr(self, attr))
 
         irc.Handler('401')(self._handle_quit)

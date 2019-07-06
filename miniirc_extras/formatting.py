@@ -219,7 +219,7 @@ def style(text: str, fg: _ocol = None, bg: _ocol = None, *,
     return styler(text)
 
 # Remove all formatting from text
-_unstyle_re = None # type: Optional[type(re.compile(''))]
+_unstyle_re = None
 def unstyle(text: str) -> str:
     global _unstyle_re
     if not _unstyle_re:

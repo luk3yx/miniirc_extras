@@ -4,10 +4,11 @@
 #
 
 import functools, miniirc, re
-from . import AbstractIRC, DummyIRC, error as _error, Hostmask
-from ._classes import _namedtuple as namedtuple
+from . import AbstractIRC, error as _error, Hostmask
+from ._classes import _DummyIRC as DummyIRC, _namedtuple as namedtuple
 from ._numerics import numerics
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
+from deprecated import deprecated # type: ignore
 
 __all__ = ['DummyIRC', 'dict_to_tags', 'tags_to_dict', 'ircv3_message_parser',
     'hostmask_to_str', 'ircv2_message_unparser', 'ircv3_message_unparser',
@@ -87,32 +88,32 @@ def ircv3_message_unparser(cmd: str, hostmask: _hostmask, tags: Dict[str,
         res = dict_to_tags(tags) + res
     return res
 
-# Mostly backwards compatibility
-if miniirc.ver >= (1,4,0):
-    def remove_colon(func: Optional[Callable] = None) -> Callable:
-        if not func:
-            return remove_colon
+# Backwards compatibility
+@deprecated(version='0.2.6', reason='Set the "colon" keyword argument to False'
+    ' on irc.Handler or irc.CmdHandler instead.')
+def remove_colon(func: Optional[Callable] = None) -> Callable:
+    """
+    Removes the leading colon (if any) from args[-1] on Handlers.
+    Deprecated since miniirc_extras 0.2.6, set the "colon" keyword argument to
+        False on irc.Handler or irc.CmdHandler instead.
+    """
 
-        # Please don't do this in your own code.
-        getattr(func, '__func__', func).miniirc_colon = True
+    if not func:
+        return remove_colon
 
-        return func
-else:
-    def remove_colon(func: Optional[Callable] = None) -> Callable:
-        if not func:
-            return remove_colon
+    # Please don't do this in your own code.
+    getattr(func, '__func__', func).miniirc_colon = True
 
-        @functools.wraps(func)
-        def handler(*params):
-            args = params[-1] # type: List[str]
-            if args and args[-1].startswith(':'):
-                args[-1] = args[-1][1:]
-            return func(*params)
-        return handler
+    return func
 
 # Handle IRC URLs
 _schemes = {}
 def register_url_scheme(*schemes: str):
+    """
+    A function decorator/at-rule that allows you to register custom URL schemes.
+    For examples, see utils.py.
+    """
+
     def n(func: Callable[..., AbstractIRC]) -> Callable[..., AbstractIRC]:
         for scheme in schemes:
             _schemes[str(scheme).lower()] = func
@@ -124,6 +125,10 @@ class URLError(_error):
 
 # A generic URL dispatcher
 def irc_from_url(url: str, **kwargs) -> AbstractIRC:
+    """
+    Creates AbstractIRC objects based on the URL and keyword arguments provided.
+    """
+
     if '://' not in url:
         raise URLError('Invalid URL.')
     scheme, url2 = url.split('://', 1)
@@ -192,21 +197,20 @@ def _discord_scheme(url: str, port: int = 0, **kwargs) -> AbstractIRC:
 
 # Handler groups
 class _Handler:
-    __slots__ = ('func', 'events', 'cmd_arg', 'ircv3')
+    __slots__ = ('func', 'events', 'cmd_arg', 'ircv3', 'colon')
 
     def add_to(self, group: 'Union[AbstractIRC, HandlerGroup]') -> None:
         handler = group.CmdHandler if self.cmd_arg else group.Handler
-        handler(*self.events, ircv3=self.ircv3)(self.func)
+        handler(*self.events, colon=self.colon, ircv3=self.ircv3)(self.func)
 
     def __init__(self, func: Callable, events: Tuple[str, ...], cmd_arg: bool,
             colon: bool, ircv3: bool) -> None:
         if len(events) == 0 and not cmd_arg:
             raise TypeError('Handler() called without arguments.')
-        elif not colon:
-            func = remove_colon(func)
         self.func    = func     # type: Callable
         self.events  = events   # type: Tuple[str, ...]
         self.cmd_arg = cmd_arg  # type: bool
+        self.colon   = colon    # type: bool
         self.ircv3   = ircv3    # type: bool
 
 class HandlerGroup:

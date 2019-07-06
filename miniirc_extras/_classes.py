@@ -6,6 +6,7 @@
 import abc, collections, io, miniirc, socket, sys, threading
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, \
     Type, Union
+from deprecated import deprecated # type: ignore
 
 __all__ = ['AbstractIRC', 'DummyIRC', 'Hostmask', 'VersionInfo']
 
@@ -157,7 +158,7 @@ AbstractIRC.register(miniirc.IRC)
 
 # A dummy IRC class
 # TODO: Move this to miniirc_extras.utils
-class DummyIRC(miniirc.IRC):
+class _DummyIRC(miniirc.IRC):
     def connect(self) -> None: raise NotImplementedError
 
     def quote(self, *msg: str, force: Optional[bool] = None,
@@ -168,3 +169,11 @@ class DummyIRC(miniirc.IRC):
             channels = (), **kwargs) -> None:
         kwargs['auto_connect'] = False
         super().__init__(ip, port, nick, channels, **kwargs)
+
+_DummyIRC.__qualname__ = _DummyIRC.__name__ = 'DummyIRC'
+_DummyIRC.__module__ = __name__.rsplit('.', 1)[0] + '.utils'
+
+@deprecated(version='0.2.6',
+            reason='Use miniirc_extras.utils.DummyIRC instead.')
+class DummyIRC(_DummyIRC):
+    """ Deprecated, use miniirc_extras.utils.DummyIRC instead. """

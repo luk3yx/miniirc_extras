@@ -202,15 +202,14 @@ class ChannelTracker:
         self[args.pop(0)].add_modes('+' + self._mode_lists[cmd], args)
 
     # Handle TOPICs
-    @utils.remove_colon
-    def _handle_topic(self, irc: AbstractIRC, hostmask: Hostmask,
+    def _chandle_topic(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
         if args[0] in self:
             self[args[0]].topic = args[-1]
 
-    def _handle_332(self, irc: AbstractIRC, hostmask: Hostmask,
+    def _chandle_332(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
-        self._handle_topic(irc, hostmask, args[1:])
+        self._chandle_topic(irc, hostmask, args[1:])
 
     # Spaghetti code to automatically change any status modes to the new
     #   nickname.
@@ -310,3 +309,5 @@ class ChannelTracker:
         for attr in dir(self):
             if attr.startswith('_handle_') and not attr.endswith('_'):
                 irc.Handler(attr[8:].upper())(getattr(self, attr))
+            elif attr.startswith('_chandle_'):
+                irc.Handler(attr[9:].upper(), colon=False)(getattr(self, attr))

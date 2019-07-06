@@ -179,28 +179,6 @@ Some miscellaneous functions and classes are located in `miniirc_extras.utils`.
 *Note that `dict_to_tags` and `tags_to_dict` are available in miniirc as
 internal functions, however they can and will change.*
 
-### `miniirc_extras.utils.remove_colon`
-
-This is no longer required since miniirc v1.4.0, you can simply add the
-`colon` keyword argument to `Handler`s and `CmdHandler`s. This function still
-works, however.
-
-An at-rule to remove the `:` (if any) from `args[-1]` when running the handler.
-This must be placed *after* `@miniirc.Handler`.
-
-Example:
-
-```py
-@miniirc.Handler('PRIVMSG')
-def handle_privmsg(irc, hostmask, args):
-    print(args) # ['#channel', ':Test message']
-
-@miniirc.Handler('PRIVMSG')
-@miniirc_extras.utils.remove_colon
-def handle_privmsg(irc, hostmask, args):
-    print(args) # ['#channel', 'Test message']
-```
-
 ### `miniirc_extras.utils.irc_from_url`
 
 Allows you to create `IRC` objects from URLs, for example
@@ -331,6 +309,43 @@ foreground colour/color for a similarly small speed improvement.
 *Note that `formatting.style(text, 'red', bold=True)` is recommended over
 `formatting.bold(formatting.colorize(text, 'red'))`, as it is more readable
 and probably faster.*
+
+### Deprecated functions.
+
+These functions still work for now but will probably be removed from
+miniirc_extras v1.0.0:
+
+#### `miniirc_extras.utils.remove_colon`
+
+This is no longer required since miniirc v1.4.0, you can simply add the
+`colon` keyword argument to `Handler`s and `CmdHandler`s.
+
+An at-rule to remove the `:` (if any) from `args[-1]` when running the handler.
+This must be placed *after* `@miniirc.Handler`.
+
+Example:
+
+```py
+# Without colon=False:
+@miniirc.Handler('PRIVMSG')
+def handle_privmsg(irc, hostmask, args):
+    print(args) # ['#channel', ':Test message']
+
+# Deprecated, do not use this.
+@miniirc.Handler('PRIVMSG')
+@miniirc_extras.utils.remove_colon
+def handle_privmsg(irc, hostmask, args):
+    print(args) # ['#channel', 'Test message']
+
+# You should use this instead:
+@miniirc.Handler('PRIVMSG', colon=False)
+def handle_privmsg(irc, hostmask, args):
+    print(args) # ['#channel', 'Test message']
+```
+
+#### `miniirc_extras.DummyIRC`
+
+Now called `miniirc_extras.utils.DummyIRC`.
 
 [RFC 1459]: https://tools.ietf.org/html/rfc1459
 [RFC 2812]: https://tools.ietf.org/html/rfc2812
