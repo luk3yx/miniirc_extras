@@ -3,7 +3,7 @@
 # Miscellaneous miniirc_extras utilities
 #
 
-import functools, miniirc, re
+import functools, miniirc, re, socket
 from . import AbstractIRC, error as _error, Hostmask
 from ._classes import _DummyIRC as DummyIRC, _namedtuple as namedtuple
 from ._numerics import numerics
@@ -105,6 +105,26 @@ def remove_colon(func: Optional[Callable] = None) -> Callable:
     getattr(func, '__func__', func).miniirc_colon = True
 
     return func
+
+# Get the raw socket from an IRC object
+def get_raw_socket(irc: AbstractIRC) -> socket.socket:
+    """
+    Attempts to get the raw socket from a miniirc.IRC object. This is not
+    recommended, and under no circumstances should you attempt to receive data
+    using this socket. Only use this if there is no alternative.
+
+    Raises a miniirc_extras.error if no socket can be found.
+    """
+
+    if not isinstance(irc, AbstractIRC):
+        raise TypeError('get_raw_socket() expects an AbstractIRC.')
+    elif irc.connected is not None:
+        for n in '_sock', 'sock':
+            sock = getattr(irc, n, None)
+            if isinstance(sock, socket.socket):
+                return sock
+
+    raise _error('Could not get a raw socket object from ' + repr(irc) + '.')
 
 # Handle IRC URLs
 _schemes = {}

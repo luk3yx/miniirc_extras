@@ -40,7 +40,7 @@ class RestrictedIRC(AbstractIRC):
             pass
         else:
             raise AttributeError('RestrictedIRC object attribute '
-                + repr(attr) +' is read-only')
+                + repr(attr) + ' is read-only')
 
         super().__setattr__(attr, value)
 

@@ -3,7 +3,7 @@
 # irc.tracking: User and channel mode tracking
 #
 
-from .. import AbstractIRC, error, Feature, Hostmask, utils
+from .. import AbstractIRC, error, Feature, Hostmask
 from . import users
 from .users import AbstractChannel, User
 from typing import Any, Callable, Dict, FrozenSet, List, Optional, Set, Tuple, \

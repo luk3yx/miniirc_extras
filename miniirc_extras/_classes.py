@@ -3,7 +3,7 @@
 # Base miniirc_extras classes
 #
 
-import abc, collections, io, miniirc, socket, sys, threading
+import abc, collections, io, miniirc, sys, threading
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, \
     Type, Union
 from deprecated import deprecated # type: ignore
@@ -68,12 +68,10 @@ _hostmask = Union[Hostmask, Tuple[str, str, str]]
 class AbstractIRC(abc.ABC):
     connected = None # type: Optional[bool]
     debug_file = None # type: Optional[Union[io.TextIOWrapper, miniirc._Logfile]]
-    sendq = None # type: Optional[List[tuple]]
     msglen = 512 # type: int
     _sasl = False # type: bool
     _unhandled_caps = None # type: Optional[set]
 
-    sock = None # type: socket.socket
     ip = None # type: str
     port = None # type: int
     nick = None # type: str

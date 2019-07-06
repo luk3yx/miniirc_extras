@@ -3,8 +3,9 @@
 # irc.ensure_connection: Decreases the ping interval temporarily
 #
 
-from .. import AbstractIRC, error, Feature, Hostmask
 import threading
+from .. import AbstractIRC, error, Feature, Hostmask
+from ..utils import get_raw_socket
 from typing import List, Optional, Tuple
 
 class NotConnectedError(error):
@@ -32,7 +33,7 @@ class ConnectionEnsurer:
             self._old_interval = irc.ping_interval
 
         # Change the ping interval
-        irc.sock.settimeout(interval)
+        get_raw_socket(irc).settimeout(interval)
 
         # Wait for a PONG - This also makes the new ping interval work
         self._managers += 1
@@ -55,7 +56,10 @@ class ConnectionEnsurer:
             self._managers -= 1
 
         if not self._managers:
-            self._irc.sock.settimeout(self._old_interval)
+            try:
+                get_raw_socket(self._irc).settimeout(self._old_interval)
+            except error:
+                pass
 
     # Set the new interval
     def __call__(self, interval: int = 2):

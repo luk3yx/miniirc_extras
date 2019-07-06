@@ -7,7 +7,7 @@
 #
 
 import json, miniirc
-from .. import Feature
+from .. import Feature, utils
 
 cap_name = 'luk3yx.github.io/json'
 
@@ -69,7 +69,7 @@ def _irc_quote_hack(irc, *msg, force=None, tags=None):
         args.insert(0, tags)
 
     args = json.dumps(args, separators=(',', ':'))
-    irc.sock.sendall(args.encode('utf-8') + b'\r\n')
+    utils.get_raw_socket(irc).sendall(args.encode('utf-8') + b'\r\n')
 
 # Switch to JSON
 def _switch_to_json(irc, hostmask, args):

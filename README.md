@@ -169,6 +169,7 @@ Some miscellaneous functions and classes are located in `miniirc_extras.utils`.
 | ----------------- | ------------------------------------------------------- |
 | `DummyIRC(...)`   | A subclass of `miniirc.IRC` that cannot connect to servers. `DummyIRC.__init__` has no required parameters. |
 | `dict_to_tags(tags)` | Converts a dict containing strings and booleans into an IRCv3 tags string. Example: `dict_to_tags({'tag1': True, 'tag2': 'tag-data'})` → `b'@tag1;tag2=tag-data '` |
+| `get_raw_socket(irc)` | Attempts to get the raw socket from an AbstractIRC object. This is not recommended, and under no circumstances should you attempt to receive data using this socket. **Only use this if there is no alternative.** Raises a miniirc_extras.error if no socket can be found. |
 | `tags_to_dict(tag_list, separator = ';')` | Converts a tags list (`tag1;tag2=tag-data`) joined by `separator` into a `dict` containing strings and booleans. |
 | `ircv3_message_parser(msg)` | The same as `miniirc.ircv3_message_parser`, but also accepts `bytes` and `bytearray`s. |
 | `hostmask_to_str(hostmask)` | Converts a `Hostmask` object into a `nick!user@host` string. |

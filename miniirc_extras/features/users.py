@@ -4,7 +4,7 @@
 #
 
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
-from .. import AbstractIRC, Feature, Hostmask, utils
+from .. import AbstractIRC, Feature, Hostmask
 
 json_types = (dict, list, tuple, str, int, float, bool, type(None)) # type: tuple
 _ujson_types = Union[dict, list, tuple, str, int, float, bool, None]
