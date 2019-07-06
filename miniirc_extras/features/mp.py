@@ -120,16 +120,12 @@ class MultiprocessingFeature:
         return res or r
 
     def Handler(self, *events: str, colon: bool = True, ircv3: bool = False):
-        args = [self._handlers, events, ircv3, False]
-        if miniirc.ver >= (1,4,0):
-            args.append(colon)
-        return miniirc._add_handler(*args) # type: ignore
+        return miniirc._add_handler(self._handlers, events, ircv3, False,
+            colon)
 
     def CmdHandler(self, *events: str, colon: bool = True, ircv3: bool = False):
-        args = [self._handlers, events, ircv3, True]
-        if miniirc.ver >= (1,4,0):
-            args.append(colon)
-        return miniirc._add_handler(*args) # type: ignore
+        return miniirc._add_handler(self._handlers, events, ircv3, True,
+            colon)
 
     def _thread_raw(self) -> None:
         while self._irc.connected:
