@@ -3,83 +3,110 @@
 # miniirc_json: A proof-of-concept JSON IRC protocol thing
 # This is currently alpha-level software and should not be used in production.
 #
+# S: [["nick", "user", "host"], "PRIVMSG", "#channel", "Test message\nNewline"]
+# S: [{"+client-tag": "tag-value"}, ["nick", "user", "host"], "PRIVMSG",
+#       "#channel", "Test message."]
+#
 # © 2019 by luk3yx.
 #
 
 import json, miniirc
-from .. import Feature, utils
+from .. import AbstractIRC, Hostmask, Feature, utils
+from typing import Dict, List, Optional, Union
 
-cap_name = 'luk3yx.github.io/json'
+cap_name = 'luk3yx.github.io/json' # type: str
 
 # JSON message parser
-def json_parser(msg):
-    # Use the standard parser if required
-    if msg.startswith('@') or msg.startswith('CAP'):
-        return miniirc.ircv3_message_parser(msg)
+@Feature('_json')
+class JSONParser:
+    __slots__ = ('_irc',)
 
-    # Parse the message
-    tags = {}
-    try:
-        msg = json.loads(msg)
-        assert type(msg) == list
+    def debug(self, *args, **kwargs) -> None:
+        self._irc.debug('[JSON decoder]', *args, **kwargs)
+
+    def json_parser(self, msg: str):
+        # Use the standard parser if required
+        if msg.startswith('@') or msg.startswith('CAP'):
+            return miniirc.ircv3_message_parser(msg)
+
+        # Parse the message
+        tags = {} # type: dict
+        try:
+            msg = json.loads(msg)
+        except json.JSONDecodeError:
+            self.debug('Error decoding JSON.')
+            return
+
+        if not isinstance(msg, list) or len(msg) == 0:
+            self.debug('Decoded JSON is not a list (or an empty list).')
+            return
 
         # Get the tags
-        if type(msg[0]) == dict:
-            tags = msg[0]
-            del msg[0]
+        if isinstance(msg[0], dict):
+            tags = msg.pop(0)
 
-        assert len(msg) > 1
-    except Exception as e:
-        return e
+            # Sanity check
+            for k, v in tags.items():
+                if not isinstance(v, (str, bool)):
+                    self.debug('Invalid IRCv3 tags.')
+                    tags = {}
+                    break
 
-    # Get the hostmask
-    # TODO: Remove the try/except
-    try:
-        assert msg[0]
+        # Make sure the message is not too short
+        if len(msg) < 2:
+            self.debug('Message too short.')
+            return
 
-        if isinstance(msg[0], str):
-            nick, user = msg[0].split('!', 1)
-            user, host = user.split('@', 1)
-            hostmask = (nick, user, host)
-        elif isinstance(msg[0], (tuple, list)):
-            assert len(msg[0]) == 3
+        # Get the hostmask
+        if isinstance(msg[0], str) and '!' in msg:
+            h = msg[0].split('!', 1)
+            if len(h) < 2:
+                h.append(h[0])
+            i = h[1].split('@', 1)
+            if len(i) < 2:
+                i.append(i[0])
+            hostmask = (h[0], i[0], i[1])
+        elif isinstance(msg[0], (tuple, list)) and len(msg[0]) == 3:
             hostmask = tuple(msg[0])
         else:
-            raise TypeError
-    except:
-        hostmask = (msg[1], msg[1], msg[1])
+            hostmask = (msg[1], msg[1], msg[1])
 
-    # Get the args
-    cmd  = msg[1]
-    args = msg[2:]
+        # Get the args
+        cmd  = msg[1]
+        args = msg[2:]
+        if args:
+            args[-1] = ':' + args[-1]
 
-    # Return the parsed data
-    return cmd, hostmask, tags, args
+        # Return the parsed data
+        return cmd, hostmask, tags, args
 
-# irc.quote() hack
-def _irc_quote_hack(irc, *msg, force=None, tags=None):
-    cmd, hostmask, _, args = miniirc.ircv3_message_parser(' '.join(msg))
-    if cap_name not in irc.active_caps:
-        irc.quote = miniirc.IRC.quote
-        return miniirc.IRC.quote(irc, *msg, force=force, tags=tags)
+    # irc.quote() hack
+    def _irc_quote_hack(self, *msg, force: Optional[bool] = None,
+            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
+        irc = self._irc
+        if cap_name not in irc.active_caps:
+            del irc.quote
+            return irc.quote(*msg, force=force, tags=tags)
+        cmd, hostmask, _, args_ = miniirc.ircv3_message_parser(' '.join(msg))
+        args = args_ # type: list
 
-    args.insert(0, cmd)
+        if args and args[-1].startswith(':'):
+            args[-1] = args[-1][1:]
+        args.insert(0, cmd)
+        if isinstance(tags, dict):
+            args.insert(0, tags)
 
-    if type(tags) == dict:
-        args.insert(0, tags)
+        rawmsg = json.dumps(args, separators=(',', ':'))
+        utils.get_raw_socket(irc).sendall(rawmsg.encode('utf-8') + b'\r\n')
 
-    args = json.dumps(args, separators=(',', ':'))
-    utils.get_raw_socket(irc).sendall(args.encode('utf-8') + b'\r\n')
+    # Switch to JSON
+    def _switch_to_json(self, irc: AbstractIRC, hostmask: Hostmask,
+            args: List[str]) -> None:
+        irc.quote = self._irc_quote_hack # type: ignore
+        irc.change_parser(self.json_parser)
+        irc.finish_negotiation(args[0])
 
-# Switch to JSON
-def _switch_to_json(irc, hostmask, args):
-    irc.quote = lambda *msg, **kw : _irc_quote_hack(irc, *msg, **kw)
-    irc.change_parser(json_parser)
-    irc.finish_negotiation(args[0])
-
-# Add the feature
-@Feature('_json')
-def json_feature(irc):
-    irc.ircv3_caps.add(cap_name)
-    irc.Handler('IRCv3 ' + cap_name)(_switch_to_json)
-    return cap_name
+    def __init__(self, irc: AbstractIRC) -> None:
+        self._irc = irc # type: AbstractIRC
+        irc.Handler('IRCv3 ' + cap_name)(self._switch_to_json)
+        irc.ircv3_caps.add(cap_name)
