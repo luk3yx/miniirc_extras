@@ -14,8 +14,9 @@ from typing import Any, List
 from ._classes import *
 
 # Version info
-ver     = VersionInfo(0,2,5, 'alpha')
-version = 'miniirc v{} / miniirc_extras v{}'.format(miniirc.ver, ver)
+ver     = VersionInfo(0,2,7, 'alpha')
+version = 'miniirc v{}.{}.{} / miniirc_extras v{}.{}.{}'.format(miniirc.ver[0],
+    miniirc.ver[1], miniirc.ver[2], ver[0], ver[1], ver[2])
 
 # The base exception class
 class error(Exception):

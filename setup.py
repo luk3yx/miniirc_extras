@@ -7,7 +7,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name        = 'miniirc_extras',
-    version     = '0.2.6',
+    version     = '0.2.7',
     packages    = ['miniirc_extras', 'miniirc_extras.features'],
     author      = 'luk3yx',
     description = 'WIP extensions for miniirc.',
@@ -16,7 +16,7 @@ setup(
 
     long_description              = desc,
     long_description_content_type = 'text/markdown',
-    install_requires              = ['miniirc>=1.4.0', 'deprecated>=1.2.5,<2'],
+    install_requires              = ['miniirc>=1.4.1', 'deprecated>=1.2.5,<2'],
     python_requires               = '>=3.5',
 
     classifiers = [

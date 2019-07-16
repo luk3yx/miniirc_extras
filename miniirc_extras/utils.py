@@ -5,7 +5,8 @@
 
 import functools, miniirc, re, socket
 from . import AbstractIRC, error as _error, Hostmask
-from ._classes import _DummyIRC as DummyIRC, _namedtuple as namedtuple
+from ._classes import _DummyIRC as DummyIRC, _namedtuple as namedtuple, \
+    VersionInfo
 from ._numerics import numerics
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 from deprecated import deprecated # type: ignore
@@ -48,12 +49,19 @@ def tags_to_dict(tag_list: Union[str, bytes, bytearray],
 
 # Allow bytes to be passed to the message parser
 _hostmask = Union[Hostmask, Tuple[str, str, str]]
-def ircv3_message_parser(msg: Union[str, bytes, bytearray]) -> Tuple[str,
-        Hostmask, Dict[str, Union[str, bool]], List[str]]:
+def ircv3_message_parser(msg: Union[str, bytes, bytearray], *,
+        colon: bool = True) -> Tuple[str, Hostmask, Dict[str, Union[str,
+        bool]], List[str]]:
     if isinstance(msg, (bytes, bytearray)):
         msg = msg.decode('utf-8', 'replace')
 
-    return miniirc.ircv3_message_parser(msg) # type: ignore
+    if colon:
+        return miniirc.ircv3_message_parser(msg) # type: ignore
+
+    cmd, hostmask, tags, args = miniirc.ircv3_message_parser(msg)
+    if args and args[-1].startswith(':'):
+        args[-1] = args[-1][1:]
+    return cmd, hostmask, tags, args # type: ignore
 
 # Convert a hostmask to a string
 def hostmask_to_str(hostmask: _hostmask) -> str:
@@ -71,8 +79,8 @@ def _prune_arg(arg):
 
 # Convert miniirc-parsed messages back to IRCv2 messages
 def ircv2_message_unparser(cmd: str, hostmask: _hostmask, tags: Dict[str,
-        Union[str, bool]], args: List[str], *, encoding: str = 'utf-8') \
-        -> bytes:
+        Union[str, bool]], args: List[str], *, colon: bool = True,
+        encoding: Optional[str] = 'utf-8') -> Union[bytes, str]:
     res = [] # type: list
     if hostmask and not any(i == cmd for i in hostmask):
         res.append(':{}!{}@{}'.format(*hostmask))
@@ -85,24 +93,32 @@ def ircv2_message_unparser(cmd: str, hostmask: _hostmask, tags: Dict[str,
     # Add the arguments list
     if len(args) > 0:
         res.extend(map(_prune_arg, args[:-1]))
-        res.append(args[-1])
+        if colon:
+            res.append(args[-1])
+        else:
+            res.append(':' + args[-1])
 
     # Encode and strip newlines
+    if not encoding:
+        return ' '.join(res).replace('\r', ' ').replace('\n', ' ')
+
     raw = ' '.join(res).encode(encoding, 'replace') # type: bytes
     raw = raw.replace(b'\r', b' ').replace(b'\n', b' ')
-
     return raw
 
 # Extend the previous function for IRCv3
 def ircv3_message_unparser(cmd: str, hostmask: _hostmask, tags: Dict[str,
-        Union[str, bool]], args: List[str], *, encoding: str = 'utf-8') \
-        -> bytes:
-    res = ircv2_message_unparser(cmd, hostmask, tags, args,
-        encoding=encoding) # type: bytes
+        Union[str, bool]], args: List[str], *, colon: bool = True,
+        encoding: Optional[str] = 'utf-8') -> Union[bytes, str]:
+    res = ircv2_message_unparser(cmd, hostmask, tags, args, colon=colon,
+        encoding=encoding)
 
-    if len(tags) > 0:
-        res = dict_to_tags(tags) + res
-    return res
+    if not tags:
+        return res
+    elif isinstance(res, bytes):
+        return dict_to_tags(tags) + res
+    else:
+        return dict_to_tags(tags).decode('utf-8', 'replace') + res
 
 # Backwards compatibility
 @deprecated(version='0.2.6', reason='Set the "colon" keyword argument to False'

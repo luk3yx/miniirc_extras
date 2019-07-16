@@ -10,6 +10,12 @@ from deprecated import deprecated # type: ignore
 
 __all__ = ['AbstractIRC', 'DummyIRC', 'Hostmask', 'VersionInfo']
 
+# Remove ._classes from __module__.
+def _fix_name(cls):
+    if cls.__module__.endswith('._classes'):
+        cls.__module__ = cls.__module__.rsplit('.', 1)[0]
+    return cls
+
 # A metaclass for instance checking
 class _HostmaskMetaclass(type):
     def __instancecheck__(self, other) -> bool:
@@ -21,6 +27,7 @@ class _HostmaskMetaclass(type):
         return all(isinstance(i, str) for i in other)
 
 # Create a hostmask class
+@_fix_name
 class Hostmask(tuple, metaclass = _HostmaskMetaclass):
     def __new__(cls, nick: str, user: str, host: str) -> Tuple[str, str, str]:
         res = (nick, user, host) # type: Tuple[str, str, str]
@@ -56,15 +63,17 @@ else:
         return res
 
 # A version info class
-VersionInfo = _namedtuple('VersionInfo', 'major minor micro releaselevel '
-    'serial', defaults = (0,0,0, 'final', 0), module = __name__)
+VersionInfo = _fix_name(_namedtuple('VersionInfo', 'major minor micro '
+    'releaselevel serial', defaults = (0,0,0, 'final', 0), module = __name__))
 VersionInfo.patch = VersionInfo.micro # type: ignore
+VersionInfo.__module__ += '.utils'
 
 # Make miniirc.ver a VersionInfo.
 miniirc.ver = VersionInfo(*miniirc.ver) # type: ignore
 
 # An abstract IRC class
 _hostmask = Union[Hostmask, Tuple[str, str, str]]
+@_fix_name
 class AbstractIRC(abc.ABC):
     connected = None # type: Optional[bool]
     debug_file = None # type: Optional[Union[io.TextIOWrapper, miniirc._Logfile]]
@@ -156,6 +165,7 @@ AbstractIRC.register(miniirc.IRC)
 
 # A dummy IRC class
 # TODO: Move this to miniirc_extras.utils
+@_fix_name
 class _DummyIRC(miniirc.IRC):
     def connect(self) -> None: raise NotImplementedError
 
@@ -169,8 +179,9 @@ class _DummyIRC(miniirc.IRC):
         super().__init__(ip, port, nick, channels, **kwargs)
 
 _DummyIRC.__qualname__ = _DummyIRC.__name__ = 'DummyIRC'
-_DummyIRC.__module__ = __name__.rsplit('.', 1)[0] + '.utils'
+_DummyIRC.__module__ += '.utils'
 
+@_fix_name
 @deprecated(version='0.2.6',
             reason='Use miniirc_extras.utils.DummyIRC instead.')
 class DummyIRC(_DummyIRC):

@@ -171,11 +171,12 @@ Some miscellaneous functions and classes are located in `miniirc_extras.utils`.
 | `dict_to_tags(tags)` | Converts a dict containing strings and booleans into an IRCv3 tags string. Example: `dict_to_tags({'tag1': True, 'tag2': 'tag-data'})` → `b'@tag1;tag2=tag-data '` |
 | `get_raw_socket(irc)` | Attempts to get the raw socket from an AbstractIRC object. This is not recommended, and under no circumstances should you attempt to receive data using this socket. **Only use this if there is no alternative.** Raises a miniirc_extras.error if no socket can be found. |
 | `tags_to_dict(tag_list, separator = ';')` | Converts a tags list (`tag1;tag2=tag-data`) joined by `separator` into a `dict` containing strings and booleans. |
-| `ircv3_message_parser(msg)` | The same as `miniirc.ircv3_message_parser`, but also accepts `bytes` and `bytearray`s. |
+| `ircv3_message_parser(msg, *, colon=True)` | The same as `miniirc.ircv3_message_parser`, but also accepts `bytes` and `bytearray`s. The `colon` keyword argument works in the same way as the `colon` keyword argument on `miniirc.Handler`. |
 | `hostmask_to_str(hostmask)` | Converts a `Hostmask` object into a `nick!user@host` string. |
-| `ircv2_message_unparser(cmd, hostmask, tags, args, *, encoding = 'utf-8')` | Converts miniirc-style message data into an IRCv2 message encoded with `encoding`. |
-| `ircv3_message_unparser(cmd, hostmask, tags, args, *, encoding = 'utf-8')` | The same as `ircv2_message_unparser`, but tags are added. |
+| `ircv2_message_unparser(cmd, hostmask, tags, args, *, colon=True, encoding='utf-8')` | Converts miniirc-style message data into an IRCv2 message encoded with `encoding` (or `None` to return a `str`). When `colon` is `False`, `args[-1]` will have a colon prepended to it. |
+| `ircv3_message_unparser(cmd, hostmask, tags, args, *, colon=True, encoding='utf-8')` | The same as `ircv2_message_unparser`, but tags are added. |
 | `namedtuple(...)` | Alias for `collections.namedtuple` on Python 3.7+, otherwise a wrapper that adds `defaults` and `module` keyword arguments. |
+| `VersionInfo(major=0, minor=0, micro=0, releaselevel='final', serial=0)` | A `namedtuple` similar to `type(sys.version_info)`. |
 
 *Note that `dict_to_tags` and `tags_to_dict` are available in miniirc as
 internal functions, however they can and will change.*
@@ -347,6 +348,10 @@ def handle_privmsg(irc, hostmask, args):
 #### `miniirc_extras.DummyIRC`
 
 Now called `miniirc_extras.utils.DummyIRC`.
+
+#### `miniirc_extras.VersionInfo`
+
+Now called `miniirc_extras.utils.VersionInfo`.
 
 [RFC 1459]: https://tools.ietf.org/html/rfc1459
 [RFC 2812]: https://tools.ietf.org/html/rfc2812
