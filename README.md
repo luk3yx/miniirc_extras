@@ -322,7 +322,7 @@ miniirc_extras v1.0.0:
 This is no longer required since miniirc v1.4.0, you can simply add the
 `colon` keyword argument to `Handler`s and `CmdHandler`s.
 
-An at-rule to remove the `:` (if any) from `args[-1]` when running the handler.
+A decorator to remove the `:` (if any) from `args[-1]` when running the handler.
 This must be placed *after* `@miniirc.Handler`.
 
 Example:
