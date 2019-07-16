@@ -21,6 +21,22 @@ if namedtuple.__module__.endswith('._classes'):
 # Copy "internal functions" from miniirc
 dict_to_tags = miniirc._dict_to_tags
 
+try:
+    _tags_to_dict = miniirc._tags_to_dict
+except AttributeError:
+    # A hack in case _tags_to_dict is removed.
+    def _tags_to_dict(tag_list: Union[str, List[str]],
+            separator: Optional[str] = ';') -> Dict[str, Union[str, bool]]:
+        if not separator:
+            assert isinstance(tag_list, list)
+            tag_list = ';'.join(map(lambda i : i.replace(';', '\\:'), tag_list))
+        elif separator != ';':
+            assert isinstance(tag_list, str)
+            tag_list = tag_list.replace(';', '\\:').replace(separator, ';')
+        cmd, hostmask, tags, args = miniirc.ircv3_message_parser(
+            '@{} '.format(tag_list))
+        return tags
+
 def tags_to_dict(tag_list: Union[str, bytes, bytearray],
         separator: str = ';') -> Dict[str, Union[str, bool]]:
     if isinstance(tag_list, (bytes, bytearray)):
@@ -28,7 +44,7 @@ def tags_to_dict(tag_list: Union[str, bytes, bytearray],
             tag_list = tag_list[1:-1]
         tag_list = tag_list.decode('utf-8', 'replace')
 
-    return miniirc._tags_to_dict(tag_list, separator)
+    return _tags_to_dict(tag_list, separator)
 
 # Allow bytes to be passed to the message parser
 _hostmask = Union[Hostmask, Tuple[str, str, str]]
