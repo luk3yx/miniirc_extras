@@ -3,7 +3,7 @@
 # Base miniirc_extras classes
 #
 
-import abc, collections, io, miniirc, sys, threading
+import abc, collections, io, miniirc, sys, threading, types
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, \
     Type, Union
 from deprecated import deprecated # type: ignore
@@ -11,9 +11,10 @@ from deprecated import deprecated # type: ignore
 __all__ = ['AbstractIRC', 'DummyIRC', 'Hostmask', 'VersionInfo']
 
 # Remove ._classes from __module__.
+_fixed_name = __name__.rsplit('.', 1)[0]
 def _fix_name(cls):
     if cls.__module__.endswith('._classes'):
-        cls.__module__ = cls.__module__.rsplit('.', 1)[0]
+        cls.__module__ = _fixed_name
     return cls
 
 # A metaclass for instance checking
@@ -102,49 +103,104 @@ class AbstractIRC(abc.ABC):
     # Functions copied from miniirc.IRC.
     def require(self, feature: str) -> Optional[Callable[['AbstractIRC'], Any]]:
         ...
-    def debug(self, *args: Any, **kwargs) -> None: ...
+
+    def debug(self, *args: Any, **kwargs) -> None:
+        """ Debug, calls print() if debug mode is on. """
+        ...
+
     def msg(self, target: str, *msg: str,
-        tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
+            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
+        """ Sends a PRIVMSG to `target`. """
+        ...
+
     def notice(self, target: str, *msg: str,
-        tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
+            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
+        """ Sends a NOTICE to `target`. """
+        ...
+
     def ctcp(self, target: str, *msg: str, reply: bool = False,
-        tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
+            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
+        """ Sends a CTCP request or reply to `target`. """
+        ...
+
     def me(self, target: str, *msg: str,
-        tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
+            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
+        """ Sends a /me (CTCP ACTION) to `target`. """
+        ...
 
     # Abstract functions.
     @abc.abstractmethod
     def quote(self, *msg: str, force: Optional[bool] = None,
-        tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
+            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
+        """
+        Sends a raw message to IRC, use force=True to send while disconnected.
+        Do not send multiple commands in one irc.quote(), as the newlines will
+        be stripped and it will be sent as one command. The `tags` parameter
+        optionally allows you to add a dict with IRCv3 message tags, and will
+        not be sent to IRC servers that do not support message tags.
+        """
+        ...
 
     @abc.abstractmethod
     def Handler(self, *events: str, colon: bool = False,
-        ircv3: bool = False) -> Callable: ...
-    @abc.abstractmethod
-    def CmdHandler(self, *events: str, colon: bool = False,
-        ircv3: bool = False) -> Callable: ...
+            ircv3: bool = False) -> Callable:
+        """
+        Adds `Handler`s specific to this AbstractIRC object. For more
+        information on handlers, see https://github.com/luk3yx/miniirc/#handlers
+        or https://gitlab.com/luk3yx/miniirc/#handlers.
+        """
+        ...
 
     @abc.abstractmethod
-    def connect(self) -> None: ...
+    def CmdHandler(self, *events: str, colon: bool = False,
+            ircv3: bool = False) -> Callable:
+        """
+        Adds `CmdHandler`s specific to this AbstractIRC object. For more
+        information on handlers, see https://github.com/luk3yx/miniirc/#handlers
+        or https://gitlab.com/luk3yx/miniirc/#handlers.
+        """
+        ...
+
+    @abc.abstractmethod
+    def connect(self) -> None:
+        """ Connects to the IRC server if not already connected. """
+        ...
 
     @abc.abstractmethod
     def disconnect(self, msg: Optional[str] = None, *,
-        auto_reconnect: bool = False) -> None: ...
+            auto_reconnect: bool = False) -> None:
+        """
+        Disconnects from the IRC server. `auto_reconnect` will be overriden by
+        self.persist if set to True.
+        """
+        ...
 
     @abc.abstractmethod
-    def finish_negotiation(self, cap: str) -> None: ...
+    def finish_negotiation(self, cap: str) -> None:
+        """
+        Removes `cap` from the IRCv3 capability processing list. Use this in
+        IRCv3 cability handlers.
+        """
+        ...
 
     @abc.abstractmethod
     def change_parser(self, parser: Callable[[str],
-        Tuple[str, _hostmask, Dict[str, Union[str, bool]],
-        List[str]]] = miniirc.ircv3_message_parser) -> None: ...
+            Tuple[str, _hostmask, Dict[str, Union[str, bool]],
+            List[str]]] = miniirc.ircv3_message_parser) -> None:
+        """
+        Changes the message parser.
+
+        Message parsers are called with the raw message (as a str) and can
+        either return None to ignore the message or a 4-tuple (command,
+        hostmask, tags, args) that will then be sent on to the handlers. The
+        items in this 4-tuple should be the same type as the items expected by
+        handlers (and `command` should be a string).
+        """
+        ...
 
     @abc.abstractmethod
     def _handle(self, cmd: str, hostmask: _hostmask,
         tags: Dict[str, Union[str, bool]], args: List[str]) -> bool: ...
-
-    @abc.abstractmethod
-    def main(self) -> threading.Thread: ...
 
     @abc.abstractmethod
     def __init__(self, ip: str, port: int, nick: str,
@@ -158,12 +214,25 @@ class AbstractIRC(abc.ABC):
         quit_message: str = 'I grew sick and died.', ping_interval: int = 60,
         verify_ssl: bool = True) -> None: ...
 
+# Add __doc__ to miniirc.IRC functions.
+for k in dir(AbstractIRC):
+    if k.startswith('_'): continue
+    f = getattr(AbstractIRC, k, None)
+    if not isinstance(f, types.FunctionType): continue
+    f2 = getattr(miniirc.IRC, k, None)
+    if isinstance(f2, types.FunctionType):
+        f2.__doc__ = f.__doc__
+del k, f, f2
+
 # Replace some functions with ones from miniirc.IRC
 MYPY = False
 if not MYPY:
     for func in ('debug', 'msg', 'notice', 'ctcp', 'me'):
-        setattr(AbstractIRC, func, getattr(miniirc.IRC, func)) # type: ignore
-    del func
+        f = getattr(miniirc.IRC, func)
+        f.__qualname__ = 'Abstract' + f.__qualname__
+        f.__module__ = _fixed_name
+        setattr(AbstractIRC, func, f)
+    del func, f
 del MYPY
 
 AbstractIRC.register(miniirc.IRC)
@@ -191,3 +260,15 @@ _DummyIRC.__module__ += '.utils'
             reason='Use miniirc_extras.utils.DummyIRC instead.')
 class DummyIRC(_DummyIRC):
     """ Deprecated, use miniirc_extras.utils.DummyIRC instead. """
+
+del _fixed_name
+
+# Set a docstring for miniirc.ircv3_message_parser.
+miniirc.ircv3_message_parser.__doc__ = """
+The default IRCv2/IRCv3 message parser, returns a 4-tuple:
+(`command`, `hostmask`, `tags`, `args`). Do not use this directly, if you want
+to parse IRCv3 messages in your own code use
+`miniirc_extras.utils.ircv3_message_parser`, and if you want to reset the
+message parser on an IRC object, call `irc.change_parser()` without any
+parameters.
+"""
