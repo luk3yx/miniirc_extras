@@ -56,3 +56,13 @@ for f in os.listdir(os.path.dirname(__file__) + os.sep + 'features'):
         _core_feature(f[:-3])
 
 del f
+
+# Set a docstring for miniirc.ircv3_message_parser.
+miniirc.ircv3_message_parser.__doc__ = """
+    The default IRCv2/IRCv3 message parser, returns a 4-tuple:
+    (`command`, `hostmask`, `tags`, `args`). Do not use this directly, if you
+    want to parse IRCv3 messages in your own code use
+    `miniirc_extras.utils.ircv3_message_parser`, and if you want to reset the
+    message parser on an IRC object, call `irc.change_parser()` without any
+    parameters.
+"""

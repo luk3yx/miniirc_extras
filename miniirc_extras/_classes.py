@@ -52,10 +52,10 @@ else:
 
         if sys.version_info >= (3, 6):
             res = collections.namedtuple(typename, field_names, # type: ignore
-                rename = rename, module = module)
+                rename=rename, module=module)
         else:
             res = collections.namedtuple(typename, field_names, # type: ignore
-                rename = rename)
+                rename=rename)
             if module is not None:
                 res.__module__ = module
 
@@ -64,10 +64,10 @@ else:
         return res
 
 # A version info class
-VersionInfo = _fix_name(_namedtuple('VersionInfo', 'major minor micro '
-    'releaselevel serial', defaults = (0,0,0, 'final', 0), module = __name__))
+VersionInfo = _namedtuple('VersionInfo', 'major minor micro '
+    'releaselevel serial', defaults=(0,0,0, 'final', 0),
+    module=_fixed_name + '.utils')
 VersionInfo.patch = VersionInfo.micro # type: ignore
-VersionInfo.__module__ += '.utils'
 
 # Make miniirc.ver a VersionInfo.
 miniirc.ver = VersionInfo(*miniirc.ver) # type: ignore
@@ -179,7 +179,7 @@ class AbstractIRC(abc.ABC):
     def finish_negotiation(self, cap: str) -> None:
         """
         Removes `cap` from the IRCv3 capability processing list. Use this in
-        IRCv3 cability handlers.
+        IRCv3 capability handlers.
         """
         ...
 
@@ -239,7 +239,6 @@ AbstractIRC.register(miniirc.IRC)
 
 # A dummy IRC class
 # TODO: Move this to miniirc_extras.utils
-@_fix_name
 class _DummyIRC(miniirc.IRC):
     def connect(self) -> None: raise NotImplementedError
 
@@ -248,12 +247,12 @@ class _DummyIRC(miniirc.IRC):
         pass
 
     def __init__(self, ip: str = '', port: int = 0, nick: str = '',
-            channels = (), **kwargs) -> None:
+            channels: Union[List[str], Set[str]] = None, **kwargs) -> None:
         kwargs['auto_connect'] = False
         super().__init__(ip, port, nick, channels, **kwargs)
 
-_DummyIRC.__qualname__ = _DummyIRC.__name__ = 'DummyIRC'
-_DummyIRC.__module__ += '.utils'
+_DummyIRC.__name__ = _DummyIRC.__qualname__ = 'DummyIRC'
+_DummyIRC.__module__ = _fixed_name + '.utils'
 
 @_fix_name
 @deprecated(version='0.2.6',
@@ -261,14 +260,4 @@ _DummyIRC.__module__ += '.utils'
 class DummyIRC(_DummyIRC):
     """ Deprecated, use miniirc_extras.utils.DummyIRC instead. """
 
-del _fixed_name
-
-# Set a docstring for miniirc.ircv3_message_parser.
-miniirc.ircv3_message_parser.__doc__ = """
-The default IRCv2/IRCv3 message parser, returns a 4-tuple:
-(`command`, `hostmask`, `tags`, `args`). Do not use this directly, if you want
-to parse IRCv3 messages in your own code use
-`miniirc_extras.utils.ircv3_message_parser`, and if you want to reset the
-message parser on an IRC object, call `irc.change_parser()` without any
-parameters.
-"""
+del _fix_name, _fixed_name

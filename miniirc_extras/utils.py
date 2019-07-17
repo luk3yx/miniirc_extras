@@ -3,7 +3,7 @@
 # Miscellaneous miniirc_extras utilities
 #
 
-import functools, miniirc, re, socket
+import collections, functools, miniirc, re, socket
 from . import AbstractIRC, error as _error, Hostmask
 from ._classes import _DummyIRC as DummyIRC, _namedtuple as namedtuple, \
     VersionInfo
@@ -18,6 +18,7 @@ __all__ = ['DummyIRC', 'dict_to_tags', 'tags_to_dict', 'ircv3_message_parser',
 if namedtuple.__module__.endswith('._classes'):
     namedtuple.__name__ = namedtuple.__qualname__ = 'namedtuple'
     namedtuple.__module__ = __name__
+    namedtuple.__doc__ = collections.namedtuple.__doc__
 
 # Copy "internal functions" from miniirc
 dict_to_tags = miniirc._dict_to_tags
