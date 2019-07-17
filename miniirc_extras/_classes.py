@@ -100,7 +100,7 @@ class AbstractIRC(abc.ABC):
     ns_identity = None # type: Optional[Union[Tuple[str, str], str]]
 
     # Functions copied from miniirc.IRC.
-    def require(self, feature: str) -> Optional[Callable[[miniirc.IRC], Any]]:
+    def require(self, feature: str) -> Optional[Callable[['AbstractIRC'], Any]]:
         ...
     def debug(self, *args: Any, **kwargs) -> None: ...
     def msg(self, target: str, *msg: str,

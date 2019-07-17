@@ -57,7 +57,7 @@ class RestrictedIRC(AbstractIRC):
         self.ssl = orig.ssl # type: Optional[bool]
         self.persist = orig.persist # type: bool
         self.ircv3_caps = orig.ircv3_caps # type: Set[str]
-        self.active_caps = orig.ircv3_caps # type: Set[str]
+        self.active_caps = orig.active_caps # type: Set[str]
         self.isupport = dict(orig.isupport) # type: Dict[str, Union[str, int]]
         self.connect_modes = orig.connect_modes # type: Optional[str]
         self.quit_message = orig.quit_message or '' # type: str
