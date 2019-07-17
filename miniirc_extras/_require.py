@@ -4,7 +4,7 @@
 #
 
 import miniirc
-from . import error
+from . import AbstractIRC, error
 from typing import Any, Callable, Dict, Optional
 
 class FeatureNotFoundError(error):
@@ -21,7 +21,14 @@ def Feature(name: str) -> Callable[[_c], _c]:
     return res
 
 # Require features
-def require(self, feature: str) -> _c:
+def require(self, feature: str) -> Any:
+    """
+    Loads a miniirc_extras feature and returns the feature object.
+    Once loaded, features can also be accessed with `irc.feature_name`.
+
+    Features must be loaded for every IRC object they are used on.
+    """
+
     if hasattr(self, feature):
         return getattr(self, feature)
     elif feature not in _features:

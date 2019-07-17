@@ -14,7 +14,7 @@ from typing import Any, List
 from ._classes import *
 
 # Version info
-ver     = VersionInfo(0,2,7, 'alpha')
+ver     = VersionInfo(0,2,8, 'alpha')
 version = 'miniirc v{}.{}.{} / miniirc_extras v{}.{}.{}'.format(miniirc.ver[0],
     miniirc.ver[1], miniirc.ver[2], ver[0], ver[1], ver[2])
 
@@ -29,6 +29,8 @@ else:
     from ._require import Feature
 
 AbstractIRC.require = miniirc.IRC.require
+AbstractIRC.require.__qualname__ = 'AbstractIRC.require'
+AbstractIRC.require.__module__ = __name__
 
 # Load features on-the-fly when required
 def _core_feature(name: str) -> None:
@@ -57,7 +59,7 @@ for f in os.listdir(os.path.dirname(__file__) + os.sep + 'features'):
 
 del f
 
-# Set a docstring for miniirc.ircv3_message_parser.
+# Set a few docstrings.
 miniirc.ircv3_message_parser.__doc__ = """
     The default IRCv2/IRCv3 message parser, returns a 4-tuple:
     (`command`, `hostmask`, `tags`, `args`). Do not use this directly, if you
@@ -65,4 +67,18 @@ miniirc.ircv3_message_parser.__doc__ = """
     `miniirc_extras.utils.ircv3_message_parser`, and if you want to reset the
     message parser on an IRC object, call `irc.change_parser()` without any
     parameters.
+"""
+
+miniirc.Handler.__doc__ = """
+    Adds `Handler`s to every IRC object that will ever exist (inside the
+    current process). For more information on handlers, see
+    https://github.com/luk3yx/miniirc/#handlers
+    or https://gitlab.com/luk3yx/miniirc/#handlers.
+"""
+
+miniirc.CmdHandler.__doc__ = """
+    Adds `CmdHandler`s to every IRC object that will ever exist (inside the
+    current process). For more information on handlers, see
+    https://github.com/luk3yx/miniirc/#handlers
+    or https://gitlab.com/luk3yx/miniirc/#handlers.
 """
