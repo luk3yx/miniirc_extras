@@ -4,7 +4,7 @@
 #
 
 import miniirc
-from . import AbstractIRC, error
+from . import error
 from typing import Any, Callable, Dict, Optional
 
 class FeatureNotFoundError(error):
