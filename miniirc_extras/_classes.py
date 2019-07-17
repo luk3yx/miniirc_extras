@@ -103,8 +103,6 @@ class AbstractIRC(abc.ABC):
     def require(self, feature: str) -> Optional[Callable[[miniirc.IRC], Any]]:
         ...
     def debug(self, *args: Any, **kwargs) -> None: ...
-    def quote(self, *msg: str, force: Optional[bool] = None,
-        tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
     def msg(self, target: str, *msg: str,
         tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
     def notice(self, target: str, *msg: str,
@@ -115,6 +113,10 @@ class AbstractIRC(abc.ABC):
         tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
 
     # Abstract functions.
+    @abc.abstractmethod
+    def quote(self, *msg: str, force: Optional[bool] = None,
+        tags: Optional[Dict[str, Union[str, bool]]] = None) -> None: ...
+
     @abc.abstractmethod
     def Handler(self, *events: str, colon: bool = False,
         ircv3: bool = False) -> Callable: ...
@@ -157,9 +159,12 @@ class AbstractIRC(abc.ABC):
         verify_ssl: bool = True) -> None: ...
 
 # Replace some functions with ones from miniirc.IRC
-for func in ('debug', 'quote', 'msg', 'notice', 'ctcp', 'me'):
-    setattr(AbstractIRC, func, getattr(miniirc.IRC, func)) # type: ignore
-del func
+MYPY = False
+if not MYPY:
+    for func in ('debug', 'msg', 'notice', 'ctcp', 'me'):
+        setattr(AbstractIRC, func, getattr(miniirc.IRC, func)) # type: ignore
+    del func
+del MYPY
 
 AbstractIRC.register(miniirc.IRC)
 
