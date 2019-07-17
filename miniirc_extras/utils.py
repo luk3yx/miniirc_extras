@@ -21,6 +21,14 @@ if namedtuple.__module__.endswith('._classes'):
 
 # Copy "internal functions" from miniirc
 dict_to_tags = miniirc._dict_to_tags
+dict_to_tags.__module__ = __name__
+dict_to_tags.__name__ = dict_to_tags.__qualname__ = 'dict_to_tags'
+dict_to_tags.__doc__ = """
+Converts a dict containing strings and booleans into an IRCv3 tags string.
+Example:
+    dict_to_tags({'tag1': True, 'tag2': 'tag-data'})
+    Return value: b'@tag1;tag2=tag-data '
+"""
 
 try:
     _tags_to_dict = miniirc._tags_to_dict
@@ -40,6 +48,11 @@ except AttributeError:
 
 def tags_to_dict(tag_list: Union[str, bytes, bytearray],
         separator: str = ';') -> Dict[str, Union[str, bool]]:
+    """
+    Converts a tags list (tag1;tag2=tag-data) joined by separator to a dict
+    containing strings and booleans.
+    """
+
     if isinstance(tag_list, (bytes, bytearray)):
         if tag_list.startswith(b'@') and tag_list.endswith(b' '):
             tag_list = tag_list[1:-1]
@@ -52,19 +65,27 @@ _hostmask = Union[Hostmask, Tuple[str, str, str]]
 def ircv3_message_parser(msg: Union[str, bytes, bytearray], *,
         colon: bool = True) -> Tuple[str, Hostmask, Dict[str, Union[str,
         bool]], List[str]]:
+    """
+    The same as miniirc.ircv3_message_parser, but also accepts bytes and
+    bytearrays. The colon keyword argument works in the same way as the colon
+    keyword argument on miniirc.Handler.
+
+    Returns a 4-tuple: (command, hostmask, tags, args)
+    """
     if isinstance(msg, (bytes, bytearray)):
         msg = msg.decode('utf-8', 'replace')
 
     if colon:
         return miniirc.ircv3_message_parser(msg) # type: ignore
 
-    cmd, hostmask, tags, args = miniirc.ircv3_message_parser(msg)
+    command, hostmask, tags, args = miniirc.ircv3_message_parser(msg)
     if args and args[-1].startswith(':'):
         args[-1] = args[-1][1:]
-    return cmd, hostmask, tags, args # type: ignore
+    return command, hostmask, tags, args # type: ignore
 
 # Convert a hostmask to a string
 def hostmask_to_str(hostmask: _hostmask) -> str:
+    """ Converts a Hostmask object to a nick!user@host string. """
     if not isinstance(hostmask, Hostmask):
         raise TypeError('hostmask_to_str() expects a Hostmask object.')
 
@@ -81,6 +102,12 @@ def _prune_arg(arg):
 def ircv2_message_unparser(cmd: str, hostmask: _hostmask, tags: Dict[str,
         Union[str, bool]], args: List[str], *, colon: bool = True,
         encoding: Optional[str] = 'utf-8') -> Union[bytes, str]:
+    """
+    Converts miniirc-style message data into an IRCv2 message encoded with
+    encoding (or None to return a str). When colon is False, args[-1] will have
+    a colon prepended to it.
+    """
+
     res = [] # type: list
     if hostmask and not any(i == cmd for i in hostmask):
         res.append(':{}!{}@{}'.format(*hostmask))
@@ -110,6 +137,7 @@ def ircv2_message_unparser(cmd: str, hostmask: _hostmask, tags: Dict[str,
 def ircv3_message_unparser(cmd: str, hostmask: _hostmask, tags: Dict[str,
         Union[str, bool]], args: List[str], *, colon: bool = True,
         encoding: Optional[str] = 'utf-8') -> Union[bytes, str]:
+    """ The same as ircv2_message_unparser, but IRCv3 tags are added. """
     res = ircv2_message_unparser(cmd, hostmask, tags, args, colon=colon,
         encoding=encoding)
 
@@ -266,6 +294,11 @@ class _Handler:
         self.ircv3   = ircv3    # type: bool
 
 class HandlerGroup:
+    """
+    Allows you to create a group of handlers and apply them in bulk to
+    AbstractIRC objects.
+    """
+
     __slots__ = ('_handlers',)
 
     # Generic add_handler function
@@ -279,13 +312,23 @@ class HandlerGroup:
 
     # User-facing Handler and CmdHandler
     def Handler(self, *events: str, colon=True, ircv3=False):
+        """
+        Adds a Handler to the group, uses the same syntax as irc.Handler.
+        """
         return self._add_handler(events, False, colon, ircv3)
 
     def CmdHandler(self, *events: str, colon=True, ircv3=False):
+        """
+        Adds a CmdHandler to the group, uses the same syntax as irc.CmdHandler.
+        """
         return self._add_handler(events, True, colon, ircv3)
 
     # Copy to another handler group
     def add_to(self, group: 'Union[AbstractIRC, HandlerGroup]') -> None:
+        """
+        Adds all the handlers in this group to an AbstractIRC object or another
+        handler group.
+        """
         if isinstance(group, HandlerGroup):
             group._handlers.update(self._handlers)
         elif not hasattr(group, 'Handler'):
@@ -297,6 +340,7 @@ class HandlerGroup:
 
     # Copy to a new handler group
     def copy(self) -> 'HandlerGroup':
+        """ Returns a copy of the HandlerGroup. """
         group = HandlerGroup()
         group._handlers.update(self._handlers)
         return group
