@@ -23,15 +23,16 @@ class NumericEnum(Numeric, enum.Enum):
     def __str__(self) -> str:
         return str(self.value)
 
-    @classmethod
-    def _missing_(cls, value) -> 'NumericEnum':
-        if isinstance(value, (int, str)) and not isinstance(value, Numeric):
-            try:
-                return cls(Numeric(value))
-            except ValueError:
-                pass
+    if sys.version_info >= (3, 6):
+        @classmethod
+        def _missing_(cls, value) -> 'NumericEnum':
+            if isinstance(value, (int, str)) and not isinstance(value, Numeric):
+                try:
+                    return cls(Numeric(value))
+                except ValueError:
+                    pass
 
-        raise ValueError(repr(value) + ' is not a valid IRC numeric.')
+            raise ValueError(repr(value) + ' is not a valid IRC numeric.')
 
 # Copied from the RFCs and https://modern.ircdocs.horse/#numerics
 class numerics(NumericEnum):
