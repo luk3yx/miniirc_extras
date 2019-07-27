@@ -212,7 +212,7 @@ Example:
 import miniirc
 from miniirc_extras.utils import numerics
 
-@miniirc.Handler(numerics.RPL_WELCOME, colon = False)
+@miniirc.Handler(numerics.RPL_WELCOME, colon=False)
 def handler(irc, hostmask, args):
     print('Connected to IRC!')
 ```

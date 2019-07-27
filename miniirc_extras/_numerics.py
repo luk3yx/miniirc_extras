@@ -34,7 +34,11 @@ class NumericEnum(Numeric, enum.Enum):
 
             raise ValueError(repr(value) + ' is not a valid IRC numeric.')
 
-# Copied from the RFCs and https://modern.ircdocs.horse/#numerics
+# References:
+#  • RFC 1459 and RFC 2812
+#  • https://modern.ircdocs.horse/#numerics
+#  • https://ircv3.net/specs/core/capability-negotiation
+#  • https://ircv3.net/specs/core/monitor-3.2
 class numerics(NumericEnum):
     RPL_WELCOME                =   1
     RPL_YOURHOST               =   2
@@ -158,6 +162,7 @@ class numerics(NumericEnum):
     ERR_TOOMANYTARGETS         = 407
     ERR_NOSUCHSERVICE          = 408
     ERR_NOORIGIN               = 409
+    ERR_INVALIDCAPCMD          = 410
     ERR_NORECIPIENT            = 411
     ERR_NOTEXTTOSEND           = 412
     ERR_NOTOPLEVEL             = 413
@@ -206,6 +211,11 @@ class numerics(NumericEnum):
     RPL_STARTTLS               = 670
     ERR_STARTTLS               = 691
     ERR_NOPRIVS                = 723
+    RPL_MONONLINE              = 730
+    RPL_MONOFFLINE             = 731
+    RPL_MONLIST                = 732
+    RPL_ENDOFMONLIST           = 733
+    ERR_MONLISTFULL            = 734
     RPL_LOGGEDIN               = 900
     RPL_LOGGEDOUT              = 901
     ERR_NICKLOCKED             = 902
@@ -215,3 +225,19 @@ class numerics(NumericEnum):
     ERR_SASLABORTED            = 906
     ERR_SASLALREADY            = 907
     RPL_SASLMECHS              = 908
+
+# Python 3.5 compatibility
+if sys.version_info < (3, 6):
+    def _new(cls, value):
+        if isinstance(value, (int, str)) and not isinstance(value, Numeric):
+            value = Numeric(value)
+
+        try:
+            return enum.Enum.__new__(cls, value)
+        except ValueError:
+            pass
+        raise ValueError(repr(value) + ' is not a valid IRC numeric.')
+
+    _new.__qualname__, _new.__name__ = 'numerics.__new__', '__new__'
+    numerics.__new__ = _new # type: ignore
+    del _new
