@@ -239,7 +239,9 @@ class ChannelTracker:
     # Handle WHO replies
     def _handle_352_(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
-        self._handle_353_(irc, hostmask, [args[1], args[6]])
+        prefixes = self._353_prefixes
+        name = ''.join(i for i in args[6] if i in prefixes) + args[5]
+        self._handle_353_(irc, hostmask, [args[1], name])
 
     # Handle NAMES
     _353_prefixes = {} # type: Dict[str, str]

@@ -197,12 +197,6 @@ class CurrentUser(User):
         if attr not in ('nick', 'id'):
             return super().__setattr__(attr, value)
 
-    def add_to_channel(self, channel: Union[str, AbstractChannel]) -> None:
-        super().add_to_channel(channel)
-
-        chan = channel if isinstance(channel, str) else channel.id # type: str
-        self._assert_irc().quote('WHO', chan)
-
     def remove_from_channel(self, channel: Union[str, AbstractChannel]) -> None:
         if isinstance(channel, str):
             channel = self._tracker.Channel(channel)
@@ -296,6 +290,9 @@ class UserTracker:
         # Add the user to the channel
         user.add_to_channel(args[0])
 
+        if user.current_user and 'userhost-in-names' not in irc.active_caps:
+            irc.quote('WHO', args[0])
+
     # Handle PARTs
     def _handle_part(self, irc: AbstractIRC, hostmask: Hostmask,
             args: List[str]) -> None:
@@ -360,7 +357,13 @@ class UserTracker:
             if not nick:
                 continue
 
-            user = self[Hostmask(nick, '???', '???')] # type: User
+            ident = host = '???' # type: str
+            if '!' in nick:
+                nick, ident = nick.split('!', 1)
+                if '@' in ident:
+                    ident, host = ident.split('@', 1)
+
+            user = self[Hostmask(nick, ident, host)] # type: User
             user.add_to_channel(args[-2])
 
         # Call the handler in chans.py
