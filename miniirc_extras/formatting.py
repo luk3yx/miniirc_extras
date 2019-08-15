@@ -26,7 +26,7 @@ class _Code(int):
     def __ne__(self, other) -> bool:
         return int(self) != other and str(self) != other
 
-class _CodeEnum(_Code, enum.Enum):
+class _CodeEnum(_Code, enum.Enum): # type: ignore
     __slots__ = ()
     def __str__(self) -> str:
         return str(self.value)

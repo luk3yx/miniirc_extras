@@ -28,7 +28,7 @@ if hasattr(miniirc, 'Feature'):
 else:
     from ._require import Feature
 
-AbstractIRC.require = miniirc.IRC.require
+AbstractIRC.require = miniirc.IRC.require # type: ignore
 AbstractIRC.require.__qualname__ = 'AbstractIRC.require'
 AbstractIRC.require.__module__ = __name__
 

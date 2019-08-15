@@ -168,6 +168,21 @@ class User(_Base):
 
         self._assert_irc().quote('KICK', channel, self.nick, ':' + reason)
 
+    # Get avatars
+    # TODO: Add more sites
+    @property
+    def avatar_url(self) -> Optional[str]:
+        ident = self.ident
+
+        # IRCCloud
+        if ident.startswith('uid') or ident.startswith('sid'):
+            i = ident[3:]
+            if i.isdigit():
+                return 'https://static.irccloud-cdn.com/avatar-redirect/' + i
+
+        # Keep mypy happy
+        return None
+
     def __init__(self, nick: str, ident: str = '???', host: str = '???', *,
             realname: str = '???', account: Optional[str] = None,
             irc: Optional[AbstractIRC] = None) -> None:

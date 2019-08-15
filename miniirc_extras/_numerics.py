@@ -18,7 +18,7 @@ class Numeric(int):
     def __ne__(self, other) -> bool:
         return int(self) != other and str(self) != other
 
-class NumericEnum(Numeric, enum.Enum):
+class NumericEnum(Numeric, enum.Enum): # type: ignore
     __slots__ = ()
     def __str__(self) -> str:
         return str(self.value)

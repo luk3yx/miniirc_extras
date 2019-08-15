@@ -50,6 +50,7 @@ The following items are available in `User` objects:
 | `raw_hostmask`| A string containing `nick!user@host`.                     |
 | `channels`    | A set containing `Channel` objects for channels the user is currently in. |
 | `account`     | A string containing the user's current NickServ account, or `None` if the user isn't logged in. |
+| `avatar_url`  | *Unreleased* The avatar URL of the user. Currently only IRCCloud avatars work. |
 
 You can also set and get items with strings as keys and JSON-compatible objects
 as values.
