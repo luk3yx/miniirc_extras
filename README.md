@@ -9,10 +9,11 @@
 An extension of miniirc ([GitHub](https://github.com/luk3yx/miniirc),
 [GitLab](https://gitlab.com/luk3yx/miniirc)) that adds more features.
 
-Note that miniirc_extras is alpha-level software and should probably not be
-used in production.
+Note that miniirc_extras is still in beta and there can and will be breaking
+API changes before v1.0.0, and miniirc_extras may not work with older versions
+of miniirc.
 
-Some features here may be merged into miniirc eventually.
+*Some features here may be merged into miniirc eventually.*
 
 ## Loading features
 
@@ -27,7 +28,7 @@ After importing miniirc_extras, features can be loaded with
  - `mp`: *(WIP)* Multiprocessing handlers for miniirc.
  - `testfeature`: Debugging
  - `users`: User tracking, must be loaded while miniirc is disconnected.
- - `_json` *(WIP)*: Parse JSON messages.
+ - `_json` *(Proof-of-concept)*: Parse JSON messages.
 
 ### `irc.users`
 
@@ -50,7 +51,7 @@ The following items are available in `User` objects:
 | `raw_hostmask`| A string containing `nick!user@host`.                     |
 | `channels`    | A set containing `Channel` objects for channels the user is currently in. |
 | `account`     | A string containing the user's current NickServ account, or `None` if the user isn't logged in. |
-| `avatar_url`  | *Unreleased* The avatar URL of the user. Currently only IRCCloud avatars work. |
+| `avatar_url`  | The avatar URL of the user. Currently only IRCCloud avatars work. |
 
 You can also set and get items with strings as keys and JSON-compatible objects
 as values.
@@ -329,7 +330,9 @@ This must be placed *after* `@miniirc.Handler`.
 Example:
 
 ```py
-# Without colon=False:
+# Without colon=False.
+# This will change in miniirc v2.0.0 when the `colon` argument will default
+#   to `False`.
 @miniirc.Handler('PRIVMSG')
 def handle_privmsg(irc, hostmask, args):
     print(args) # ['#channel', ':Test message']
@@ -353,6 +356,14 @@ Now called `miniirc_extras.utils.DummyIRC`.
 #### `miniirc_extras.VersionInfo`
 
 Now called `miniirc_extras.utils.VersionInfo`.
+
+#### Other planned breaking changes
+
+ - To coincide with miniirc v2.0.0, all functions that take a `colon` keyword
+    argument here will default to `False` (instead of `True`). This may change
+    in miniirc_extras v1.0.0 instead.
+ - If Python 3.5 is obsolete by the time miniirc_extras v1.0.0 is released,
+    support may be dropped.
 
 [RFC 1459]: https://tools.ietf.org/html/rfc1459
 [RFC 2812]: https://tools.ietf.org/html/rfc2812

@@ -6,10 +6,9 @@
 import collections, functools, miniirc, re, socket
 from . import AbstractIRC, error as _error, Hostmask
 from ._classes import _DummyIRC as DummyIRC, _namedtuple as namedtuple, \
-    VersionInfo
+    VersionInfo, deprecated
 from ._numerics import numerics
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
-from deprecated import deprecated # type: ignore
 
 __all__ = ['DummyIRC', 'dict_to_tags', 'tags_to_dict', 'ircv3_message_parser',
     'hostmask_to_str', 'ircv2_message_unparser', 'ircv3_message_unparser',

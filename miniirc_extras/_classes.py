@@ -6,7 +6,11 @@
 import abc, collections, io, miniirc, sys, threading, types
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, \
     Type, Union
-from deprecated import deprecated # type: ignore
+
+try:
+    from deprecated import deprecated # type: ignore
+except ImportError:
+    def deprecated(**kwargs): return lambda func : func
 
 __all__ = ['AbstractIRC', 'DummyIRC', 'Hostmask', 'VersionInfo']
 
@@ -219,7 +223,7 @@ for k in dir(AbstractIRC):
     f = getattr(AbstractIRC, k, None)
     if not isinstance(f, types.FunctionType): continue
     f2 = getattr(miniirc.IRC, k, None)
-    if isinstance(f2, types.FunctionType):
+    if isinstance(f2, types.FunctionType) and not f2.__doc__:
         f2.__doc__ = f.__doc__
 del k, f, f2
 
