@@ -130,7 +130,7 @@ class MultiprocessingFeature:
     def _thread_raw(self) -> None:
         while self._irc.connected:
             try:
-                data = self._queue.get(timeout = 30)
+                data = self._queue.get(timeout=30)
                 if not isinstance(data, (tuple, list)):
                     pass
                 elif len(data) == 2:
@@ -147,7 +147,7 @@ class MultiprocessingFeature:
                 and self._thread_obj.is_alive()):
             return
 
-        self._thread_obj = threading.Thread(target = self._thread_raw)
+        self._thread_obj = threading.Thread(target=self._thread_raw)
         self._thread_obj.start()
 
     def __init__(self, irc: AbstractIRC) -> None:
