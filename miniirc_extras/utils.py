@@ -96,7 +96,7 @@ def hostmask_to_str(hostmask: _hostmask) -> str:
 def _prune_arg(arg):
     if arg.startswith(':'):
         arg = '\u0703' + arg[1:]
-    return arg.replace(' ', '\xa0')
+    return arg.replace(' ', '\xa0').replace('\r', '\xa0').replace('\n', '\xa0')
 
 # Convert miniirc-parsed messages back to IRCv2 messages
 def ircv2_message_unparser(cmd: str, hostmask: _hostmask, tags: Dict[str,
