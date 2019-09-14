@@ -3,7 +3,8 @@
 # Bot creation class
 #
 
-import collections.abc, configparser, functools, miniirc, re, threading, types
+import collections.abc, configparser, functools, miniirc, re, sys, \
+       threading, types
 from typing import (Any, Callable, Dict, IO, List, Mapping, Optional, Tuple,
                     Union, overload)
 from . import AbstractIRC, error, Hostmask, utils, version
@@ -292,6 +293,26 @@ class Bot:
         return version
 
     @classmethod
+    def main(cls, **kwargs) -> None:
+        """
+        A function that can be called from __main__. Keyword arguments are
+        passed to argparse.ArgumentParser().
+        """
+        import argparse
+        parser = argparse.ArgumentParser(**kwargs)
+        parser.add_argument('config_file',
+            help='The config file to use with this bot.')
+        parser.add_argument('-V', '--version', action='version',
+            version=version)
+        args = parser.parse_args()
+
+        try:
+            cls.from_config(args.config_file)
+        except ConfigError as e:
+            print('ERROR: ' + str(e), file=sys.stderr)
+            sys.exit(1)
+
+    @classmethod
     def from_config(cls, filename: str, *,
             require: Optional[Union[Tuple[str, ...], List[str]]] = None) \
             -> 'Bot':
@@ -389,6 +410,10 @@ class Bot:
                                      map(str.strip,
                                          data['channels'].split(','))), name)
 
+        # Sanity check
+        if not self.ircs:
+            raise ConfigError('No IRC networks specified!')
+
         # Add irc.require() features.
         if require:
             for feature in require:
@@ -424,3 +449,6 @@ class Bot:
         self.ircs = [] # type: List[AbstractIRC]
         for irc in ircs:
             self.add_irc(irc)
+
+if __name__ == '__main__':
+    Bot.main()
