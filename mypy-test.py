@@ -4,6 +4,7 @@
 #
 
 import miniirc_extras
+import miniirc_extras.bot
 import miniirc_extras.features._json
 import miniirc_extras.features.chans
 import miniirc_extras.features.ensure_connection
