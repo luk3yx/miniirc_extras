@@ -14,8 +14,8 @@ from typing import Any, List
 from ._classes import *
 
 # Version info
-__version_info__ = ver = VersionInfo(0,2,12, 'beta')
-__version__ = '0.2.12'
+__version_info__ = ver = VersionInfo(0,3,0, 'alpha', 0)
+__version__ = '0.3.0a0'
 version = 'miniirc v{}.{}.{} / miniirc_extras v{}'.format(miniirc.ver[0],
     miniirc.ver[1], miniirc.ver[2], __version__)
 
