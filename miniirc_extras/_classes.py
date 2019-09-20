@@ -86,6 +86,10 @@ class AbstractIRC(abc.ABC):
     _sasl = False # type: bool
     _unhandled_caps = None # type: Optional[set]
 
+    @property
+    def current_nick(self) -> str:
+        return self.nick
+
     ip = None # type: str
     port = None # type: int
     nick = None # type: str
