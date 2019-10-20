@@ -34,7 +34,7 @@ class _HostmaskMetaclass(type):
 # Create a hostmask class
 @_fix_name
 class Hostmask(tuple, metaclass=_HostmaskMetaclass):
-    def __new__(cls, nick: str, user: str, host: str) -> Tuple[str, str, str]:
+    def __new__(cls, nick: str, user: str, host: str) -> Tuple[str, str, str]: # type: ignore
         res = (nick, user, host) # type: Tuple[str, str, str]
         if not all(isinstance(i, str) for i in res):
             raise TypeError('{} is not a valid hostmask!'.format(res))

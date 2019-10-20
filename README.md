@@ -63,7 +63,7 @@ as values.
 | `msg(*text)`      | Send a `PRIVMSG` to the user.                           |
 | `me(*text)`       | Send a `CTCP ACTION` (`/me`) to the user.               |
 | `notice(*text)`   | Send a `NOTICE` to the user.                            |
-| `kick(channel, reason = '')` | Kicks the user from `channel` (a string or `Channel` object). |
+| `kick(channel, reason='')` | Kicks the user from `channel` (a string or `Channel` object). |
 
 ### `irc.chans`
 
@@ -88,7 +88,7 @@ ModeList objects store a list of modes, and have the following functions:
 | Function          | Description                                             |
 | ----------------- | ------------------------------------------------------- |
 | `getbool(mode)`   | Returns `True` if `mode` (a single-character string) is set on the corresponding channel. *Use this for `+i`, `+t`, etc* |
-| `getstr(mode, default = None)` | Return the parameter `mode` was set with, otherwise `default`. *Use this for `+k`, `+l`, etc* |
+| `getstr(mode, default=None)` | Return the parameter `mode` was set with, otherwise `default`. *Use this for `+k`, `+l`, etc* |
 | `getset(mode)` | Return a `frozenset` containing all the entries stored in `mode`. If you plan to use this for modes such as `+b`, you may want to run `MODE #channel +b` when the bot/client joins the channel to populate the list. *Use this for `+b`, `+e`, `+o`, `+v`, etc* |
 | `hasstr(mode)` | Returns `True` if `mode` is set with a single parameter, otherwise `False`. |
 | `hasset(mode)` | Equivalent to `len(getset(mode)) > 0`. |
@@ -233,6 +233,38 @@ Another example:
 >>> str(numerics.RPL_YOURHOST)
 '002'
 ```
+
+### `miniirc_extras.aioirc`
+
+An asyncio-oriented version of `miniirc.IRC`. Example:
+
+```py
+import asyncio, time
+from miniirc_extras import aioirc
+
+irc = aioirc.AsyncIRC(ip, 6697, nickname, '#botwar', auto_connect=False)
+
+@irc.Handler('PRIVMSG', colon=False)
+def handle_privmsg(irc, hostmask, args):
+    if args[0] == '#botwar' and args[1] == '>thread_test':
+        irc.msg(args[0], '[Thread] Waiting 1 second...')
+        time.sleep(1)
+        irc.msg(args[0], '[Thread] Done!')
+
+@irc.Handler('PRIVMSG', colon=False)
+async def handle_privmsg(irc, hostmask, args):
+    if args[0] == '#botwar' and args[1] == '>coro_test':
+        await irc.msg(args[0], '[Coroutine] Waiting 1 second...')
+        await asyncio.sleep(1)
+        await irc.msg(args[0], '[Coroutine] Done!')
+
+if __name__ == '__main__':
+    irc.connect()
+    asyncio.get_event_loop().run_forever()
+```
+
+This probably doesn't need to be used unless asyncio-based libraries need to be
+used.
 
 ### `miniirc_extras.formatting`
 
