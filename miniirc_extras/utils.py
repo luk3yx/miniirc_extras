@@ -148,24 +148,6 @@ def ircv3_message_unparser(cmd: str, hostmask: _hostmask, tags: Dict[str,
     else:
         return dict_to_tags(tags).decode('utf-8', 'replace') + res
 
-# Backwards compatibility
-@deprecated(version='0.2.6', reason='Set the "colon" keyword argument to False'
-    ' on irc.Handler or irc.CmdHandler instead.')
-def remove_colon(func: Optional[Callable] = None) -> Callable:
-    """
-    Removes the leading colon (if any) from args[-1] on Handlers.
-    Deprecated since miniirc_extras 0.2.6, set the "colon" keyword argument to
-        False on irc.Handler or irc.CmdHandler instead.
-    """
-
-    if not func:
-        return remove_colon
-
-    # Please don't do this in your own code.
-    getattr(func, '__func__', func).miniirc_colon = True
-
-    return func
-
 # Get the raw socket from an IRC object
 def get_raw_socket(irc: AbstractIRC) -> socket.socket:
     """

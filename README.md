@@ -351,36 +351,6 @@ and probably faster.*
 These functions still work for now but will probably be removed from
 miniirc_extras v1.0.0:
 
-#### `miniirc_extras.utils.remove_colon`
-
-This is no longer required since miniirc v1.4.0, you can simply add the
-`colon` keyword argument to `Handler`s and `CmdHandler`s.
-
-A decorator to remove the `:` (if any) from `args[-1]` when running the handler.
-This must be placed *after* `@miniirc.Handler`.
-
-Example:
-
-```py
-# Without colon=False.
-# This will change in miniirc v2.0.0 when the `colon` argument will default
-#   to `False`.
-@miniirc.Handler('PRIVMSG')
-def handle_privmsg(irc, hostmask, args):
-    print(args) # ['#channel', ':Test message']
-
-# Deprecated, do not use this.
-@miniirc.Handler('PRIVMSG')
-@miniirc_extras.utils.remove_colon
-def handle_privmsg(irc, hostmask, args):
-    print(args) # ['#channel', 'Test message']
-
-# You should use this instead:
-@miniirc.Handler('PRIVMSG', colon=False)
-def handle_privmsg(irc, hostmask, args):
-    print(args) # ['#channel', 'Test message']
-```
-
 #### `miniirc_extras.DummyIRC`
 
 Now called `miniirc_extras.utils.DummyIRC`.
