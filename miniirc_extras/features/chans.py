@@ -310,6 +310,4 @@ class ChannelTracker:
         irc.CmdHandler(*self._mode_lists.keys())(self._parse_mode_lists)
         for attr in dir(self):
             if attr.startswith('_handle_') and not attr.endswith('_'):
-                irc.Handler(attr[8:].upper())(getattr(self, attr))
-            elif attr.startswith('_chandle_'):
-                irc.Handler(attr[9:].upper(), colon=False)(getattr(self, attr))
+                irc.Handler(attr[8:].upper(), colon=False)(getattr(self, attr))
