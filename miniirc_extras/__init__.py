@@ -6,16 +6,16 @@
 #
 
 import miniirc, os, sys
-assert hasattr(miniirc, 'ver') and miniirc.ver >= (1,4,0), \
-    'miniirc_extras requires miniirc >= 1.4.0.'
+assert hasattr(miniirc, 'ver') and miniirc.ver >= (1,5,0), \
+    'miniirc_extras requires miniirc >= 1.5.0.'
 
 from miniirc import CmdHandler, Handler, IRC
 from typing import Any, List
 from ._classes import *
 
 # Version info
-__version_info__ = ver = VersionInfo(0,3,2)
-__version__ = '0.3.2'
+__version_info__ = ver = VersionInfo(0,3,3)
+__version__ = '0.3.3'
 version = 'miniirc v{}.{}.{} / miniirc_extras v{}'.format(miniirc.ver[0],
     miniirc.ver[1], miniirc.ver[2], __version__)
 
