@@ -262,8 +262,6 @@ class UserTracker:
             id = item[0].lower()
             if id not in self._users:
                 self._users[id] = User(*item, irc=self._irc)
-                if item[2] == '???':
-                    self._irc.quote('WHOIS', item[0])
 
             return self._users[id]
 
