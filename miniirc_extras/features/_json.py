@@ -10,11 +10,12 @@
 # © 2019 by luk3yx.
 #
 
+from __future__ import annotations
 import json, miniirc
 from .. import AbstractIRC, Hostmask, Feature, utils
-from typing import Dict, List, Optional, Union
+from typing import Optional, Union
 
-cap_name = 'luk3yx.github.io/json' # type: str
+cap_name: str = 'luk3yx.github.io/json'
 
 # JSON message parser
 @Feature('_json')
@@ -30,7 +31,7 @@ class JSONParser:
             return miniirc.ircv3_message_parser(msg)
 
         # Parse the message
-        tags = {} # type: dict
+        tags: dict = {}
         try:
             msg = json.loads(msg)
         except json.JSONDecodeError:
@@ -82,13 +83,13 @@ class JSONParser:
 
     # irc.quote() hack
     def _irc_quote_hack(self, *msg, force: Optional[bool] = None,
-            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
+            tags: Optional[dict[str, Union[str, bool]]] = None) -> None:
         irc = self._irc
         if cap_name not in irc.active_caps:
             del irc.quote
             return irc.quote(*msg, force=force, tags=tags)
         cmd, hostmask, _, args_ = miniirc.ircv3_message_parser(' '.join(msg))
-        args = args_ # type: list
+        args: list = args_
 
         if args and args[-1].startswith(':'):
             args[-1] = args[-1][1:]
@@ -101,12 +102,12 @@ class JSONParser:
 
     # Switch to JSON
     def _switch_to_json(self, irc: AbstractIRC, hostmask: Hostmask,
-            args: List[str]) -> None:
+            args: list[str]) -> None:
         irc.quote = self._irc_quote_hack # type: ignore
         irc.change_parser(self.json_parser)
         irc.finish_negotiation(args[0])
 
     def __init__(self, irc: AbstractIRC) -> None:
-        self._irc = irc # type: AbstractIRC
+        self._irc: AbstractIRC = irc
         irc.Handler('IRCv3 ' + cap_name)(self._switch_to_json)
         irc.ircv3_caps.add(cap_name)

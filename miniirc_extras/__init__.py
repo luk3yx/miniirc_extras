@@ -5,12 +5,13 @@
 # © 2019 by luk3yx.
 #
 
+from __future__ import annotations
 import miniirc, os, sys
 assert hasattr(miniirc, 'ver') and miniirc.ver >= (1,5,0), \
     'miniirc_extras requires miniirc >= 1.5.0.'
 
 from miniirc import CmdHandler, Handler, IRC
-from typing import Any, List
+from typing import Any
 from ._classes import *
 
 # Version info
@@ -35,7 +36,7 @@ AbstractIRC.require.__module__ = __name__
 
 # Load features on-the-fly when required
 def _core_feature(name: str) -> None:
-    module = __name__ + '.features.' + name # type: str
+    module: str = __name__ + '.features.' + name
 
     @Feature(name)
     def _feature(irc: miniirc.IRC) -> Any:
@@ -46,7 +47,7 @@ def _core_feature(name: str) -> None:
         return irc.require(name)
 
 # Create __all__
-__all__ = ['CmdHandler', 'Feature', 'Handler', 'IRC', 'error'] # type: List[str]
+__all__: list[str] = ['CmdHandler', 'Feature', 'Handler', 'IRC', 'error']
 
 # Load the base classes
 from . import _classes

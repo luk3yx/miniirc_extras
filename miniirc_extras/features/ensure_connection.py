@@ -3,22 +3,23 @@
 # irc.ensure_connection: Decreases the ping interval temporarily
 #
 
+from __future__ import annotations
 import threading
 from .. import AbstractIRC, error, Feature, Hostmask
 from ..utils import get_raw_socket
-from typing import List, Optional, Tuple
+from typing import Optional
 
 class NotConnectedError(error):
     pass
 
-_ping_arg = 'miniirc_extras-connection_ensurer' # type: str
+_ping_arg: str = 'miniirc_extras-connection_ensurer'
 
 # The ensure_connection feature
 @Feature('ensure_connection')
 class ConnectionEnsurer:
-    _new_interval = 2     # type: int
-    _old_interval = None  # type: Optional[int]
-    _managers     = 0     # type: int
+    _new_interval: int = 2
+    _old_interval: Optional[int] = None
+    _managers: int = 0
 
     # Handle new contexts
     def __enter__(self) -> None:
@@ -73,7 +74,7 @@ class ConnectionEnsurer:
 
     # Handle PONGs
     def _handle_pong(self, irc: AbstractIRC, hostmask: Hostmask,
-            args: List[str]) -> None:
+            args: list[str]) -> None:
         if args and args[-1] == _ping_arg and self._managers:
             self._event.set()
 

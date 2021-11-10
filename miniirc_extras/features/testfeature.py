@@ -2,6 +2,7 @@
 # Test
 #
 
+from __future__ import annotations
 from .. import Feature
 
 print('Testing feature loaded.')

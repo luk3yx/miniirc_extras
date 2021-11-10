@@ -3,16 +3,18 @@
 # miniirc_extras: require()
 #
 
+from __future__ import annotations
 import miniirc
 from . import error
-from typing import Any, Callable, Dict, Optional
+from collections.abc import Callable
+from typing import Any, Optional, Union
 
 class FeatureNotFoundError(error):
     pass
 
 # Add features
-_c = Callable[[miniirc.IRC], Any]
-_features = {} # type: Dict[str, _c]
+_c = Union['Callable[[miniirc.IRC], Any]']
+_features: dict[str, _c] = {}
 def Feature(name: str) -> Callable[[_c], _c]:
     def res(func: _c):
         _features[str(name).lower()] = func

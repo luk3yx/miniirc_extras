@@ -8,8 +8,9 @@
 # Inspired by https://pypi.org/project/ircmessage/.
 #
 
+from __future__ import annotations
 import enum, re
-from typing import Optional, Tuple, Union
+from typing import Optional, Union
 
 class _Code(int):
     __slots__ = ()
@@ -35,7 +36,7 @@ class _CodeEnum(_Code, enum.Enum): # type: ignore
         return hash(self.value)
 
     @classmethod
-    def _missing_(cls, value) -> '_CodeEnum':
+    def _missing_(cls, value) -> _CodeEnum:
         if isinstance(value, (int, str)) and not isinstance(value, _Code):
             try:
                 return cls(_Code(value))
@@ -154,23 +155,23 @@ class Styler:
             reverse_colour: bool = False, reverse_color: bool = False,
             strikethrough: bool = False, spoiler: bool = False,
             monospace: bool = False, reset: bool = True):
-        self.fg = None # type: Optional[colours]
-        self.bg = None # type: Optional[colours]
+        self.fg: Optional[colours] = None
+        self.bg: Optional[colours] = None
 
         if fg:
             self.fg = _get_code(fg)
         if bg:
             self.bg = _get_code(bg)
 
-        self.bold = bold # type: bool
-        self.italics = italics # type: bool
-        self.underline = underline # type: bool
-        self.reverse_colour = reverse_colour or reverse_color # type: bool
-        self.reverse_color = self.reverse_colour # type: bool
-        self.strikethrough = strikethrough # type: bool
-        self.spoiler = spoiler # type: bool
-        self.monospace = monospace # type: bool
-        self.reset = reset # type: bool
+        self.bold: bool = bold
+        self.italics: bool = italics
+        self.underline: bool = underline
+        self.reverse_colour: bool = reverse_colour or reverse_color
+        self.reverse_color: bool = self.reverse_colour
+        self.strikethrough: bool = strikethrough
+        self.spoiler: bool = spoiler
+        self.monospace: bool = monospace
+        self.reset: bool = reset
 
 # Lightweight stylers
 class _LightweightStyler(Styler):
@@ -184,11 +185,11 @@ class _LightweightStyler(Styler):
         return self.char + str(text) + self.char
 
     def __init__(self, name: str, char: Optional[str] = None):
-        self.name = name # type: str
+        self.name: str = name
         if char is None:
             char = _codes[name]
         assert isinstance(char, str)
-        self.char = char # type: str
+        self.char: str = char
 
         kwargs = {}
         if name in Styler.__slots__:

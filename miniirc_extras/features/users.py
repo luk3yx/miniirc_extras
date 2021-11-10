@@ -3,10 +3,12 @@
 # irc.users: User tracking
 #
 
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+from __future__ import annotations
+from collections.abc import Callable
+from typing import Any, Optional, Union
 from .. import AbstractIRC, Feature, Hostmask
 
-json_types = (dict, list, tuple, str, int, float, bool, type(None)) # type: tuple
+json_types: tuple = (dict, list, tuple, str, int, float, bool, type(None))
 _ujson_types = Union[dict, list, tuple, str, int, float, bool, None]
 
 # Data
@@ -46,7 +48,7 @@ class _Base:
 
     # Create the data dictionary
     def __init__(self) -> None:
-        self._data = {} # type: Dict[str, _ujson_types]
+        self._data: dict[str, _ujson_types] = {}
 
 # Abstract channels
 class AbstractChannel(_Base):
@@ -57,7 +59,7 @@ class AbstractChannel(_Base):
         return False
 
     # Add a user
-    def add_user(self, user: 'User') -> None:
+    def add_user(self, user: User) -> None:
         if not isinstance(user, User):
             raise TypeError('add_user() requires a User.')
         elif user not in self.users:
@@ -65,7 +67,7 @@ class AbstractChannel(_Base):
             self.users.add(user)
 
     # Remove a user
-    def remove_user(self, user: 'User') -> None:
+    def remove_user(self, user: User) -> None:
         if not isinstance(user, User):
             raise TypeError('remove_user() requires a User.')
         elif user in self.users:
@@ -79,18 +81,18 @@ class AbstractChannel(_Base):
     def __init__(self, name: str, topic: str = '',
             irc: Optional[AbstractIRC] = None) -> None:
         super().__init__()
-        self.id    = name.lower() # type: str
-        self.name  = name         # type: str
-        self.topic = topic        # type: str
-        self.users = set()        # type: Set[User]
+        self.id: str = name.lower()
+        self.name: str = name
+        self.topic: str = topic
+        self.users: set[User] = set()
 
-Channel = AbstractChannel # type: Callable[[str, str, Optional[AbstractIRC]], AbstractChannel]
+Channel: Callable[[str, str, Optional[AbstractIRC]], AbstractChannel] = AbstractChannel
 
 # The user class
 class User(_Base):
-    account = None # type: Optional[str]
-    server  = None # type: Optional[str]
-    current_user = False # type: bool
+    account: Optional[str] = None
+    server: Optional[str] = None
+    current_user: bool = False
 
     # Get the hostmask
     @property
@@ -187,13 +189,13 @@ class User(_Base):
             realname: str = '???', account: Optional[str] = None,
             irc: Optional[AbstractIRC] = None) -> None:
         super().__init__()
-        self.id    = nick.lower() # type: str
-        self.nick  = nick  # type: str
-        self.ident = ident # type: str
-        self.host  = host  # type: str
-        self._irc  = irc   # type: Optional[AbstractIRC]
-        self.realname = realname # type: str
-        self.channels = set() # type: Set[AbstractChannel]
+        self.id: str = nick.lower()
+        self.nick: str = nick
+        self.ident: str = ident
+        self.host: str = host
+        self._irc: Optional[AbstractIRC] = irc
+        self.realname: str = realname
+        self.channels: set[AbstractChannel] = set()
         self.account  = account
 
 # The current user
@@ -220,10 +222,10 @@ class CurrentUser(User):
         if channel.id in self._tracker._chans:
             self._tracker._chans[channel.id]
 
-    def __init__(self, tracker: 'UserTracker'):
-        irc = tracker._irc # type: AbstractIRC
+    def __init__(self, tracker: UserTracker):
+        irc: AbstractIRC = tracker._irc
         super().__init__(nick=irc.nick, irc=irc)
-        self._tracker = tracker # type: UserTracker
+        self._tracker: UserTracker = tracker
         irc.quote('WHOIS', irc.nick)
 
 # User tracker
@@ -267,7 +269,7 @@ class UserTracker:
 
     # Get a channel
     def Channel(self, name: str, topic: str = '') -> AbstractChannel:
-        id = name.lower() # type: str
+        id: str = name.lower()
         res = self._chans.get(id)
         if not res:
             res = Channel(name, topic, self._irc)
@@ -279,16 +281,16 @@ class UserTracker:
 
     # Handle 001s
     def _handle_001(self, irc: AbstractIRC, hostmask: Hostmask,
-            args: List[str]) -> None:
+            args: list[str]) -> None:
         self._chans.clear()
         self._users.clear()
-        user = CurrentUser(self) # type: CurrentUser
+        user: CurrentUser = CurrentUser(self)
         self._users[user.id] = user
 
     # Handle JOINs
     def _handle_join(self, irc: AbstractIRC, hostmask: Hostmask,
-            args: List[str]) -> None:
-        user = self[hostmask] # type: User
+            args: list[str]) -> None:
+        user: User = self[hostmask]
 
         user.ident = hostmask[1]
         user.host  = hostmask[2]
@@ -297,7 +299,7 @@ class UserTracker:
         if 'extended-join' in irc.active_caps and len(args) > 2:
             user.realname = args[-1]
 
-            account = args[-2] # type: str
+            account: str = args[-2]
             user.account = '' if account == '*' else account
 
         # Add the user to the channel
@@ -308,18 +310,18 @@ class UserTracker:
 
     # Handle PARTs
     def _handle_part(self, irc: AbstractIRC, hostmask: Hostmask,
-            args: List[str]) -> None:
+            args: list[str]) -> None:
         self[hostmask].remove_from_channel(args[0])
 
     # Handle KICKs
     def _handle_kick(self, irc: AbstractIRC, hostmask: Hostmask,
-            args: List[str]) -> None:
+            args: list[str]) -> None:
         if args[1] in self:
             self[args[1]].remove_from_channel(args[0])
 
     # Handle QUITs (and 401s)
     def _handle_quit(self, irc: AbstractIRC, hostmask: Hostmask,
-            args: List[str]) -> None:
+            args: list[str]) -> None:
         try:
             user = self[hostmask[0]]
         except KeyError:
@@ -334,7 +336,7 @@ class UserTracker:
 
     # Handle NICKs
     def _handle_nick(self, irc: AbstractIRC, hostmask: Hostmask,
-            args: List[str]) -> None:
+            args: list[str]) -> None:
         user = self[hostmask]
         del self._users[hostmask[0].lower()]
         user.nick = args[0]
@@ -347,10 +349,10 @@ class UserTracker:
 
     # Handle WHO replies
     def _handle_352(self, irc: AbstractIRC, _: Hostmask,
-            args: List[str]) -> None:
-        channel = args[1] # type: str
+            args: list[str]) -> None:
+        channel: str = args[1]
 
-        user = self[Hostmask(args[5], '???', '???')] # type: User
+        user: User = self[Hostmask(args[5], '???', '???')]
         user.ident = args[2]
         user.host = args[3]
         user.realname = args[-1].split(' ', 1)[-1]
@@ -362,7 +364,7 @@ class UserTracker:
 
     # Handle NAMES replies
     def _handle_353(self, irc: AbstractIRC, hostmask: Hostmask,
-            args: List[str]) -> None:
+            args: list[str]) -> None:
         prefixes = str(irc.isupport.get('PREFIX', ' !~&@+'))
         prefixes = prefixes[1:].split(')', 1)[-1]
         for nick in args[-1].split(' '):
@@ -370,13 +372,15 @@ class UserTracker:
             if not nick:
                 continue
 
-            ident = host = '???' # type: str
+            ident: str
+            host: str
+            ident = host = '???'
             if '!' in nick:
                 nick, ident = nick.split('!', 1)
                 if '@' in ident:
                     ident, host = ident.split('@', 1)
 
-            user = self[Hostmask(nick, ident, host)] # type: User
+            user: User = self[Hostmask(nick, ident, host)]
             user.add_to_channel(args[-2])
 
         # Call the handler in chans.py
@@ -391,9 +395,9 @@ class UserTracker:
         assert not irc.connected, 'The "users" feature must be enabled' \
             ' before connecting to IRC!'
 
-        self._irc   = irc # type: AbstractIRC
-        self._chans = {}  # type: Dict[str, AbstractChannel]
-        self._users = {}  # type: Dict[str, User]
+        self._irc: AbstractIRC = irc
+        self._chans: dict[str, AbstractChannel] = {}
+        self._users: dict[str, User] = {}
 
         for attr in dir(self):
             if attr.startswith('_handle_'):

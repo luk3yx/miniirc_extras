@@ -3,9 +3,11 @@
 # Multiprocessing wrapper for miniirc
 #
 
+from __future__ import annotations
 import miniirc, multiprocessing as mp, queue, sys, threading, traceback
 from .. import AbstractIRC, Feature, Hostmask
-from typing import Callable, Dict, List, Optional, Set, Tuple, Union
+from collections.abc import Callable
+from typing import Optional, Union
 
 def _not_implemented(*args, **kwargs):
     raise NotImplementedError('RestrictedIRC objects do not have this '
@@ -16,7 +18,7 @@ _not_implemented.__name__ = _not_implemented.__qualname__ = '(not implemented)'
 class RestrictedIRC(AbstractIRC):
     # Send all irc.quote() and irc.debug() messages through the Queue.
     def quote(self, *msg: str, force: Optional[bool] = None,
-            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
+            tags: Optional[dict[str, Union[str, bool]]] = None) -> None:
         if not all(isinstance(i, str) for i in msg):
             raise TypeError('irc.quote() expects all positional arguments to '
                 'be strings.')
@@ -48,23 +50,23 @@ class RestrictedIRC(AbstractIRC):
     def __init__(self, orig: AbstractIRC, queue=None) -> None:
         if not isinstance(orig, AbstractIRC):
             raise TypeError('RestrictedIRC.__init__ expects an AbstractIRC.')
-        self.ip = orig.ip # type: str
-        self.port = orig.port # type: int
-        self.nick = orig.nick # type: str
-        self.channels = orig.channels # type: Set[str]
-        self.ident = orig.ident # type: str
-        self.realname = orig.realname # type: str
-        self.ssl = orig.ssl # type: Optional[bool]
-        self.persist = orig.persist # type: bool
-        self.ircv3_caps = orig.ircv3_caps # type: Set[str]
-        self.active_caps = orig.active_caps # type: Set[str]
-        self.isupport = dict(orig.isupport) # type: Dict[str, Union[str, int]]
-        self.connect_modes = orig.connect_modes # type: Optional[str]
-        self.quit_message = orig.quit_message or '' # type: str
-        self.ping_interval = orig.ping_interval # type: int
+        self.ip: str = orig.ip
+        self.port: int = orig.port
+        self.nick: str = orig.nick
+        self.channels: set[str] = orig.channels
+        self.ident: str = orig.ident
+        self.realname: str = orig.realname
+        self.ssl: Optional[bool] = orig.ssl
+        self.persist: bool = orig.persist
+        self.ircv3_caps: set[str] = orig.ircv3_caps
+        self.active_caps: set[str] = orig.active_caps
+        self.isupport: dict[str, Union[str, int]] = dict(orig.isupport)
+        self.connect_modes: Optional[str] = orig.connect_modes
+        self.quit_message: str = orig.quit_message or ''
+        self.ping_interval: int = orig.ping_interval
         self.debug_file = None
-        self._debug = bool(orig.debug_file) # type: bool
-        self.verify_ssl = orig.verify_ssl # type: bool
+        self._debug: bool = bool(orig.debug_file)
+        self.verify_ssl: bool = orig.verify_ssl
 
         # __sendq has to be the last one set.
         self.__sendq = queue
@@ -74,13 +76,13 @@ del _not_implemented
 # Multiprocessing - Don't send this or the actual IRC object to workers.
 @Feature('mp')
 class MultiprocessingFeature:
-    _thread_obj = None # type: Optional[threading.Thread]
+    _thread_obj: Optional[threading.Thread] = None
 
     # Start a handler function - Mostly copied from miniirc
     def _start_handler(self, irc: RestrictedIRC,
-            handlers: List[Callable[..., None]], command: str,
-            hostmask: Hostmask, tags: Dict[str, Union[str, bool]],
-            args: List[str]) -> bool:
+            handlers: list[Callable[..., None]], command: str,
+            hostmask: Hostmask, tags: dict[str, Union[str, bool]],
+            args: list[str]) -> bool:
         r = False
         for handler in handlers:
             r = True
@@ -98,16 +100,16 @@ class MultiprocessingFeature:
         return r
 
     # Override the handler function
-    def _handle(self, cmd: str, hostmask: Hostmask, tags: Dict[str,
-            Union[str, bool]], args: List[str]) -> bool:
+    def _handle(self, cmd: str, hostmask: Hostmask, tags: dict[str,
+            Union[str, bool]], args: list[str]) -> bool:
         # Don't explode if the miniirc_extras code fails
         try:
             cmd = str(cmd).upper()
             if not isinstance(hostmask, Hostmask):
                 hostmask = Hostmask(*hostmask)
 
-            r = False  # type: bool
-            irc = None # type: Optional[RestrictedIRC]
+            r: bool = False
+            irc: Optional[RestrictedIRC] = None
             for c in (cmd, None):
                 if c in self._handlers:
                     irc = irc or RestrictedIRC(self._irc, self._queue)
@@ -156,7 +158,7 @@ class MultiprocessingFeature:
         self._queue = manager.Queue()
         irc._handle = self._handle # type: ignore
         self._pool = mp.Pool()
-        self._handlers = {} # type: Dict[str, List[Callable[..., None]]]
+        self._handlers: dict[str, list[Callable[..., None]]] = {}
 
         # Start the message sending thread
         irc.Handler('001')(self._thread)

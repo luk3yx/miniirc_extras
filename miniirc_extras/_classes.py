@@ -3,9 +3,10 @@
 # Base miniirc_extras classes
 #
 
+from __future__ import annotations
 import abc, collections, io, miniirc, sys, threading, types
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, \
-    Type, Union
+from collections.abc import Callable, Iterable
+from typing import Any, Optional, Union
 
 try:
     from deprecated import deprecated # type: ignore
@@ -34,8 +35,8 @@ class _HostmaskMetaclass(type):
 # Create a hostmask class
 @_fix_name
 class Hostmask(tuple, metaclass=_HostmaskMetaclass):
-    def __new__(cls, nick: str, user: str, host: str) -> Tuple[str, str, str]: # type: ignore
-        res = (nick, user, host) # type: Tuple[str, str, str]
+    def __new__(cls, nick: str, user: str, host: str) -> tuple[str, str, str]: # type: ignore
+        res: tuple[str, str, str] = (nick, user, host)
         if not all(isinstance(i, str) for i in res):
             raise TypeError('{} is not a valid hostmask!'.format(res))
         return res
@@ -77,36 +78,36 @@ VersionInfo.patch = VersionInfo.micro # type: ignore
 miniirc.ver = VersionInfo(*miniirc.ver) # type: ignore
 
 # An abstract IRC class
-_hostmask = Union[Hostmask, Tuple[str, str, str]]
+_hostmask = Union[Hostmask, 'tuple[str, str, str]']
 @_fix_name
 class AbstractIRC(abc.ABC):
-    connected = None # type: Optional[bool]
-    debug_file = None # type: Optional[Union[io.TextIOWrapper, miniirc._Logfile]]
-    msglen = 512 # type: int
-    _sasl = False # type: bool
-    _unhandled_caps = None # type: Optional[set]
+    connected: Optional[bool] = None
+    debug_file: Optional[Union[io.TextIOWrapper, miniirc._Logfile]] = None
+    msglen: int = 512
+    _sasl: bool = False
+    _unhandled_caps: Optional[set] = None
 
     @property
     def current_nick(self) -> str:
         return self.nick
 
-    ip = None # type: str
-    port = None # type: int
-    nick = None # type: str
-    channels = None # type: Set[str]
-    ident = None # type: str
-    realname = None # type: str
-    ssl = None # type: Optional[bool]
-    persist = True # type: bool
-    ircv3_caps = None # type: Set[str]
-    active_caps = None # type: Set[str]
-    isupport = None # type: Dict[str, Union[str, int]]
-    connect_modes = None # type: Optional[str]
-    quit_message = 'I grew sick and died.' # type: str
-    ping_interval = 60 # type: int
-    verify_ssl = True # type: bool
+    ip: str
+    port: int
+    nick: str
+    channels: set[str]
+    ident: str
+    realname: str
+    ssl: Optional[bool] = None
+    persist: bool = True
+    ircv3_caps: set[str]
+    active_caps: set[str]
+    isupport: dict[str, Union[str, int]]
+    connect_modes: Optional[str] = None
+    quit_message: str = 'I grew sick and died.'
+    ping_interval: int = 60
+    verify_ssl: bool = True
 
-    ns_identity = None # type: Optional[Union[Tuple[str, str], str]]
+    ns_identity: Optional[Union[tuple[str, str], str]] = None
 
     # Functions copied from miniirc.IRC.
     def require(self, feature: str) -> Any: ...
@@ -116,29 +117,29 @@ class AbstractIRC(abc.ABC):
         ...
 
     def msg(self, target: str, *msg: str,
-            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
+            tags: Optional[dict[str, Union[str, bool]]] = None) -> None:
         """ Sends a PRIVMSG to `target`. """
         ...
 
     def notice(self, target: str, *msg: str,
-            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
+            tags: Optional[dict[str, Union[str, bool]]] = None) -> None:
         """ Sends a NOTICE to `target`. """
         ...
 
     def ctcp(self, target: str, *msg: str, reply: bool = False,
-            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
+            tags: Optional[dict[str, Union[str, bool]]] = None) -> None:
         """ Sends a CTCP request or reply to `target`. """
         ...
 
     def me(self, target: str, *msg: str,
-            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
+            tags: Optional[dict[str, Union[str, bool]]] = None) -> None:
         """ Sends a /me (CTCP ACTION) to `target`. """
         ...
 
     # Abstract functions.
     @abc.abstractmethod
     def quote(self, *msg: str, force: Optional[bool] = None,
-            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
+            tags: Optional[dict[str, Union[str, bool]]] = None) -> None:
         """
         Sends a raw message to IRC, use force=True to send while disconnected.
         Do not send multiple commands in one irc.quote(), as the newlines will
@@ -192,8 +193,8 @@ class AbstractIRC(abc.ABC):
 
     @abc.abstractmethod
     def change_parser(self, parser: Callable[[str],
-            Tuple[str, _hostmask, Dict[str, Union[str, bool]],
-            List[str]]] = miniirc.ircv3_message_parser) -> None:
+            tuple[str, _hostmask, dict[str, Union[str, bool]],
+            list[str]]] = miniirc.ircv3_message_parser) -> None:
         """
         Changes the message parser.
 
@@ -207,17 +208,17 @@ class AbstractIRC(abc.ABC):
 
     @abc.abstractmethod
     def _handle(self, cmd: str, hostmask: _hostmask,
-        tags: Dict[str, Union[str, bool]], args: List[str]) -> bool: ...
+        tags: dict[str, Union[str, bool]], args: list[str]) -> bool: ...
 
     @abc.abstractmethod
     def __init__(self, ip: str, port: int, nick: str,
-        channels: Union[List[str], Set[str]] = None, *,
+        channels: Union[list[str], set[str]] = None, *,
         ssl: Optional[bool] = None, ident: Optional[str] = None,
         realname: Optional[str] = None, persist: bool = True,
         debug: Union[bool, io.TextIOWrapper, str] = False,
-        ns_identity: Optional[Union[Tuple[str, str], str]] = None,
-        auto_connect: bool = True, ircv3_caps: Union[Set[str], List[str],
-        Tuple[str, ...]] = [], connect_modes: Optional[str] = None,
+        ns_identity: Optional[Union[tuple[str, str], str]] = None,
+        auto_connect: bool = True, ircv3_caps: Union[set[str], list[str],
+        tuple[str, ...]] = [], connect_modes: Optional[str] = None,
         quit_message: str = 'I grew sick and died.', ping_interval: int = 60,
         verify_ssl: bool = True) -> None: ...
 
@@ -250,11 +251,11 @@ class _DummyIRC(miniirc.IRC):
     def connect(self) -> None: raise NotImplementedError
 
     def quote(self, *msg: str, force: Optional[bool] = None,
-            tags: Optional[Dict[str, Union[str, bool]]] = None) -> None:
+            tags: Optional[dict[str, Union[str, bool]]] = None) -> None:
         pass
 
     def __init__(self, ip: str = '', port: int = 0, nick: str = '',
-            channels: Union[List[str], Set[str]] = None, **kwargs) -> None:
+            channels: Union[list[str], set[str]] = None, **kwargs) -> None:
         kwargs['auto_connect'] = False
         super().__init__(ip, port, nick, channels, **kwargs)
 

@@ -3,12 +3,14 @@
 # Miscellaneous miniirc_extras utilities
 #
 
+from __future__ import annotations
 import collections, functools, miniirc, re, socket
 from . import AbstractIRC, error as _error, Hostmask
 from ._classes import _DummyIRC as DummyIRC, _namedtuple as namedtuple, \
     VersionInfo, deprecated
 from ._numerics import numerics
-from typing import Callable, Dict, List, Optional, Set, Tuple, Union
+from collections.abc import Callable
+from typing import Optional, Union
 
 __all__ = ['DummyIRC', 'dict_to_tags', 'tags_to_dict', 'ircv3_message_parser',
     'hostmask_to_str', 'ircv2_message_unparser', 'ircv3_message_unparser',
@@ -34,8 +36,8 @@ try:
     _tags_to_dict = miniirc._tags_to_dict
 except AttributeError:
     # A hack in case _tags_to_dict is removed.
-    def _tags_to_dict(tag_list: Union[str, List[str]],
-            separator: Optional[str] = ';') -> Dict[str, Union[str, bool]]:
+    def _tags_to_dict(tag_list: Union[str, list[str]],
+            separator: Optional[str] = ';') -> dict[str, Union[str, bool]]:
         if not separator:
             assert isinstance(tag_list, list)
             tag_list = ';'.join(map(lambda i : i.replace(';', '\\:'), tag_list))
@@ -47,7 +49,7 @@ except AttributeError:
         return tags
 
 def tags_to_dict(tag_list: Union[str, bytes, bytearray],
-        separator: str = ';') -> Dict[str, Union[str, bool]]:
+        separator: str = ';') -> dict[str, Union[str, bool]]:
     """
     Converts a tags list (tag1;tag2=tag-data) joined by separator to a dict
     containing strings and booleans.
@@ -61,10 +63,10 @@ def tags_to_dict(tag_list: Union[str, bytes, bytearray],
     return _tags_to_dict(tag_list, separator)
 
 # Allow bytes to be passed to the message parser
-_hostmask = Union[Hostmask, Tuple[str, str, str]]
+_hostmask = Union[Hostmask, 'tuple[str, str, str]']
 def ircv3_message_parser(msg: Union[str, bytes, bytearray], *,
-        colon: bool = True) -> Tuple[str, Hostmask, Dict[str, Union[str,
-        bool]], List[str]]:
+        colon: bool = True) -> tuple[str, Hostmask, dict[str, Union[str,
+        bool]], list[str]]:
     """
     The same as miniirc.ircv3_message_parser, but also accepts bytes and
     bytearrays. The colon keyword argument works in the same way as the colon
@@ -99,8 +101,8 @@ def _prune_arg(arg):
     return arg.replace(' ', '\xa0').replace('\r', '\xa0').replace('\n', '\xa0')
 
 # Convert miniirc-parsed messages back to IRCv2 messages
-def ircv2_message_unparser(cmd: str, hostmask: _hostmask, tags: Dict[str,
-        Union[str, bool]], args: List[str], *, colon: bool = True,
+def ircv2_message_unparser(cmd: str, hostmask: _hostmask, tags: dict[str,
+        Union[str, bool]], args: list[str], *, colon: bool = True,
         encoding: Optional[str] = 'utf-8') -> Union[bytes, str]:
     """
     Converts miniirc-style message data into an IRCv2 message encoded with
@@ -108,7 +110,7 @@ def ircv2_message_unparser(cmd: str, hostmask: _hostmask, tags: Dict[str,
     a colon prepended to it.
     """
 
-    res = [] # type: list
+    res: list = []
     if hostmask and not any(i == cmd for i in hostmask):
         res.append(':{}!{}@{}'.format(*hostmask))
 
@@ -129,13 +131,13 @@ def ircv2_message_unparser(cmd: str, hostmask: _hostmask, tags: Dict[str,
     if not encoding:
         return ' '.join(res).replace('\r', ' ').replace('\n', ' ')
 
-    raw = ' '.join(res).encode(encoding, 'replace') # type: bytes
+    raw: bytes = ' '.join(res).encode(encoding, 'replace')
     raw = raw.replace(b'\r', b' ').replace(b'\n', b' ')
     return raw
 
 # Extend the previous function for IRCv3
-def ircv3_message_unparser(cmd: str, hostmask: _hostmask, tags: Dict[str,
-        Union[str, bool]], args: List[str], *, colon: bool = True,
+def ircv3_message_unparser(cmd: str, hostmask: _hostmask, tags: dict[str,
+        Union[str, bool]], args: list[str], *, colon: bool = True,
         encoding: Optional[str] = 'utf-8') -> Union[bytes, str]:
     """ The same as ircv2_message_unparser, but IRCv3 tags are added. """
     res = ircv2_message_unparser(cmd, hostmask, tags, args, colon=colon,
@@ -218,13 +220,13 @@ def _ircs_scheme(url: str, ssl: Optional[bool] = True, **kwargs) \
         raise URLError('No nickname specified in the URL or kwargs.')
 
     ip   = ip
-    port = 6697 # type: int
+    port: int = 6697
     if raw_port:
         port = int(raw_port)
     elif 'port' in kwargs:
         port = kwargs.pop('port')
 
-    channels = set(kwargs.pop('channels', ())) # type: set
+    channels: set = set(kwargs.pop('channels', ()))
     if chans:
         for chan in chans.split(','):
             if not chan:
@@ -261,19 +263,19 @@ def _discord_scheme(url: str, port: int = 0, **kwargs) -> AbstractIRC:
 class _Handler:
     __slots__ = ('func', 'events', 'cmd_arg', 'ircv3', 'colon')
 
-    def add_to(self, group: 'Union[AbstractIRC, HandlerGroup]') -> None:
+    def add_to(self, group: Union[AbstractIRC, HandlerGroup]) -> None:
         handler = group.CmdHandler if self.cmd_arg else group.Handler
         handler(*self.events, colon=self.colon, ircv3=self.ircv3)(self.func)
 
-    def __init__(self, func: Callable, events: Tuple[str, ...], cmd_arg: bool,
+    def __init__(self, func: Callable, events: tuple[str, ...], cmd_arg: bool,
             colon: bool, ircv3: bool) -> None:
         if len(events) == 0 and not cmd_arg:
             raise TypeError('Handler() called without arguments.')
-        self.func    = func     # type: Callable
-        self.events  = events   # type: Tuple[str, ...]
-        self.cmd_arg = cmd_arg  # type: bool
-        self.colon   = colon    # type: bool
-        self.ircv3   = ircv3    # type: bool
+        self.func: Callable = func
+        self.events: tuple[str, ...] = events
+        self.cmd_arg: bool = cmd_arg
+        self.colon: bool = colon
+        self.ircv3: bool = ircv3
 
 class HandlerGroup:
     """
@@ -284,7 +286,7 @@ class HandlerGroup:
     __slots__ = ('_handlers',)
 
     # Generic add_handler function
-    def _add_handler(self, events: Tuple[str, ...], cmd_arg: bool, colon: bool,
+    def _add_handler(self, events: tuple[str, ...], cmd_arg: bool, colon: bool,
             ircv3: bool) -> Callable[[Callable], Callable]:
         def _finish_handler(func: Callable) -> Callable:
             self._handlers.add(_Handler(func, events, cmd_arg, colon, ircv3))
@@ -306,7 +308,7 @@ class HandlerGroup:
         return self._add_handler(events, True, colon, ircv3)
 
     # Copy to another handler group
-    def add_to(self, group: 'Union[AbstractIRC, HandlerGroup]') -> None:
+    def add_to(self, group: Union[AbstractIRC, HandlerGroup]) -> None:
         """
         Adds all the handlers in this group to an AbstractIRC object or another
         handler group.
@@ -321,7 +323,7 @@ class HandlerGroup:
                 handler.add_to(group)
 
     # Copy to a new handler group
-    def copy(self) -> 'HandlerGroup':
+    def copy(self) -> HandlerGroup:
         """ Returns a copy of the HandlerGroup. """
         group = HandlerGroup()
         group._handlers.update(self._handlers)
@@ -329,4 +331,4 @@ class HandlerGroup:
 
     # Add self._handlers
     def __init__(self):
-        self._handlers = set() # type: Set[_Handler]
+        self._handlers: set[_Handler] = set()

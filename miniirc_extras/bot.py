@@ -3,10 +3,11 @@
 # Bot creation class
 #
 
+from __future__ import annotations
 import collections.abc, configparser, functools, miniirc, re, sys, \
        threading, types
-from typing import (Any, Callable, Dict, IO, List, Mapping, Optional, Tuple,
-                    Union, overload)
+from collections.abc import Callable, Mapping
+from typing import Any, IO, Optional, Union, overload
 from . import AbstractIRC, error, Hostmask, utils, version
 
 __all__ = ['ConfigError', 'Bot']
@@ -42,13 +43,13 @@ class _NamedIRCMapping(collections.abc.Mapping):
     def __len__(self):
         return sum(1 for irc in self._bot.ircs if hasattr(irc, 'name'))
 
-    def __init__(self, bot: 'Bot'):
+    def __init__(self, bot: Bot):
         if not isinstance(bot, Bot):
             raise TypeError('_NamedIRCMapping.__init__ requires a Bot.')
         self._bot = bot
 
 _docstring_re = re.compile(r'\s{3,}')
-_cmd_type = Callable[[AbstractIRC, Hostmask, str, str], Any]
+_cmd_type = Union['Callable[[AbstractIRC, Hostmask, str, str], Any]']
 class Bot:
     """
     A multi-IRC-network Bot class.
@@ -80,8 +81,8 @@ class Bot:
     """
 
     # The default bot prefix for this class.
-    prefix = '$' # type: str
-    config = None # type: Optional[Mapping[str, Mapping[str, str]]]
+    prefix: str = '$'
+    config: Optional[Mapping[str, Mapping[str, str]]] = None
 
     def __add_handler(self, real_add_handler: Callable[[Callable], Callable]) \
             -> Callable[[Callable], Callable]:
@@ -187,7 +188,7 @@ class Bot:
                 irc.require(feature_name)
 
     def on_privmsg(self, irc: AbstractIRC, hostmask: Hostmask, \
-            args: List[str]) -> bool:
+            args: list[str]) -> bool:
         """
         The default PRIVMSG handler for bots. If you want to retain support
         for commands while adding a custom PRIVMSG handler, you can add
@@ -314,8 +315,8 @@ class Bot:
 
     @classmethod
     def from_config(cls, filename: str, *,
-            require: Optional[Union[Tuple[str, ...], List[str]]] = None) \
-            -> 'Bot':
+            require: Optional[Union[tuple[str, ...], list[str]]] = None) \
+            -> Bot:
         """
         Reads a generic configuration from `filename` and returns a Bot object.
         "require" may be a tuple containing miniirc_extras features that will
@@ -342,8 +343,8 @@ class Bot:
 
     @classmethod
     def from_parsed_config(cls, config: Mapping[str, Mapping[str, str]], *,
-            require: Optional[Union[Tuple[str, ...], List[str]]] = None) \
-            -> 'Bot':
+            require: Optional[Union[tuple[str, ...], list[str]]] = None) \
+            -> Bot:
         """
         Similar to from_config(), however expects a parsed config similar to
         this dict (the config provided can be a collections.abc.Mapping if
@@ -366,7 +367,7 @@ class Bot:
         }
         """
 
-        prefix = None # type: Optional[str]
+        prefix: Optional[str] = None
         if 'core' in config:
             prefix = config['core'].get('prefix')
 
@@ -378,7 +379,7 @@ class Bot:
 
             data = config[section]
 
-            kwargs = {'auto_connect': False} # type: Dict[str, Any]
+            kwargs: dict[str, Any] = {'auto_connect': False}
             # Get generic keyword arguments
             for i in 'ident', 'realname', 'ns_identity', 'connect_modes', \
                     'quit_message':
@@ -425,16 +426,20 @@ class Bot:
 
     def __init__(self, *ircs: AbstractIRC, prefix: Optional[str] = None) \
             -> None:
-        self.lock = threading.Lock() # type: threading.Lock
-        self.named_ircs = _NamedIRCMapping(self) # type: Mapping[str, AbstractIRC]
+        self.lock: threading.Lock = threading.Lock()
+        self.named_ircs: Mapping[str, AbstractIRC] = _NamedIRCMapping(self)
 
         # Add the prefix
         if isinstance(prefix, str):
             self.prefix = prefix
 
         # Create handlers and commands
-        hg = self._handlers = utils.HandlerGroup() # type: utils.HandlerGroup
-        cmds = self.commands = {} # type: Dict[str, _cmd_type]
+        hg: utils.HandlerGroup
+        self._handlers: utils.HandlerGroup
+        hg = self._handlers = utils.HandlerGroup()
+        cmds: dict[str, _cmd_type]
+        self.commands: dict[str, _cmd_type]
+        cmds = self.commands = {}
         for name in dir(self):
             if name.startswith('on_'):
                 func = getattr(self, name, None)
@@ -446,7 +451,7 @@ class Bot:
                     cmds[name[4:]] = func
 
         # Add the IRC objects
-        self.ircs = [] # type: List[AbstractIRC]
+        self.ircs: list[AbstractIRC] = []
         for irc in ircs:
             self.add_irc(irc)
 

@@ -3,6 +3,7 @@
 # miniirc_extras numerics
 #
 
+from __future__ import annotations
 import enum, sys
 
 # Subclass int so that repr() and str() add leading zeroes if required
@@ -25,7 +26,7 @@ class NumericEnum(Numeric, enum.Enum): # type: ignore
 
     if sys.version_info >= (3, 6):
         @classmethod
-        def _missing_(cls, value) -> 'NumericEnum':
+        def _missing_(cls, value) -> NumericEnum:
             if isinstance(value, (int, str)) and not isinstance(value, Numeric):
                 try:
                     return cls(Numeric(value))

@@ -6,8 +6,9 @@
 # Copyright © 2019 by luk3yx.
 #
 
+from __future__ import annotations
 import atexit, asyncio, functools, miniirc, ssl, threading
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Optional, Union
 from . import AbstractIRC as _AbstractIRC
 from .utils import dict_to_tags as _dict_to_tags
 
@@ -39,7 +40,7 @@ class AsyncIRC(miniirc.IRC):
     An asyncio-based miniirc-compatible IRC class.
     """
 
-    _pinged = False # type: bool
+    _pinged: bool = False
     _event_loop = None
     __awaitable = _Awaitable()
 
@@ -56,7 +57,7 @@ class AsyncIRC(miniirc.IRC):
 
     # A replaced irc.quote()
     def quote(self, *msg: str, force: Optional[bool] = None, # type: ignore
-            tags: Optional[Dict[str, Union[str, bool]]] = None) -> _Awaitable:
+            tags: Optional[dict[str, Union[str, bool]]] = None) -> _Awaitable:
         """
         Sends a raw message to IRC, use force=True to send while disconnected.
         Do not send multiple commands in one irc.quote(), as the newlines will
@@ -94,26 +95,26 @@ class AsyncIRC(miniirc.IRC):
         return self.__awaitable
 
     def msg(self, target: str, *msg: str, # type: ignore
-            tags: Optional[Dict[str, Union[str, bool]]] = None) -> _Awaitable:
+            tags: Optional[dict[str, Union[str, bool]]] = None) -> _Awaitable:
         return self.quote('PRIVMSG', str(target), ':' + ' '.join(msg),
             tags=tags)
 
     def notice(self, target: str, *msg: str, # type: ignore
-            tags: Optional[Dict[str, Union[str, bool]]] = None) -> _Awaitable:
+            tags: Optional[dict[str, Union[str, bool]]] = None) -> _Awaitable:
         return self.quote('NOTICE',  str(target), ':' + ' '.join(msg),
             tags=tags)
 
     def ctcp(self, target: str, *msg: str, reply: bool = False, # type: ignore
-            tags: Optional[Dict[str, Union[str, bool]]] = None) -> _Awaitable:
+            tags: Optional[dict[str, Union[str, bool]]] = None) -> _Awaitable:
         m = (self.notice if reply else self.msg)
         return m(target, '\x01{}\x01'.format(' '.join(msg)), tags=tags)
 
     def me(self, target: str, *msg: str, # type: ignore
-            tags: Optional[Dict[str, Union[str, bool]]] = None) -> _Awaitable:
+            tags: Optional[dict[str, Union[str, bool]]] = None) -> _Awaitable:
         return self.ctcp(target, 'ACTION', *msg, tags=tags)
 
     # Actually send messages
-    async def _raw_quote(self, tags: Optional[Dict[str, Union[str, bool]]],
+    async def _raw_quote(self, tags: Optional[dict[str, Union[str, bool]]],
             msg: str, force: Optional[bool]) -> None:
         # Oops, the connection was lost before this function got called.
         if self.connected is None:
@@ -176,7 +177,7 @@ class AsyncIRC(miniirc.IRC):
     async def __main(self) -> None:
         reader = self.__reader
         self.debug('Main loop running!')
-        buffer = b'' # type: bytes
+        buffer: bytes = b''
         while True:
             try:
                 assert len(buffer) < 65535, 'Very long line detected!'
@@ -239,7 +240,7 @@ class AsyncIRC(miniirc.IRC):
         self.sock = _FakeSocket(self)
 
         # Create an SSL context
-        ctx = None # type: Optional[ssl.SSLContext]
+        ctx: Optional[ssl.SSLContext] = None
         if self.ssl:
             if self.verify_ssl:
                 ctx = ssl.create_default_context(cafile=miniirc.get_ca_certs())

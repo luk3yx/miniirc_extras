@@ -17,7 +17,7 @@ setup(
     long_description              = desc,
     long_description_content_type = 'text/markdown',
     install_requires              = ['miniirc>=1.4.3', 'deprecated>=1.2.5,<2'],
-    python_requires               = '>=3.5',
+    python_requires               = '>=3.7',
 
     classifiers = [
         'Development Status :: 4 - Beta',
